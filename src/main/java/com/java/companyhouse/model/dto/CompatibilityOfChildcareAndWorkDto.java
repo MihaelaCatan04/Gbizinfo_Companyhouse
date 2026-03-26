@@ -1,0 +1,16 @@
+package com.java.companyhouse.model.dto;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class CompatibilityOfChildcareAndWorkDto {
+    private String runId;
+    private String corporateNumber;
+    private String mergeKey;
+    private Integer numberOfPaternityLeave;
+    private Integer numberOfMaternityLeave;
+    private Integer paternityLeaveAcquisitionNum;
+    private Integer maternityLeaveAcquisitionNum;
+}
