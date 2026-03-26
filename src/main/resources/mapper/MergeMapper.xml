@@ -4,48 +4,40 @@
 <mapper namespace="com.java.companyhouse.mapper.MergeMapper">
 
     <update id="upsertCompany">
-        INSERT INTO company (
-            corporate_number, name, kana, name_en, postal_code,
-            location, process, aggregated_year, status, close_date,
-            close_cause, kind, representative_name, capital_stock,
-            employee_number, company_size_male, company_size_female,
-            business_summary, company_url, founding_year,
-            date_of_establishment, qualification_grade,
-            workplace_info
-        )
-        VALUES (
-                   #{corporateNumber}, #{name}, #{kana}, #{nameEn}, #{postalCode},
-                   #{location}, #{process}, #{aggregatedYear}, #{status},
-                   #{closeDate}::date, #{closeCause}, #{kind}, #{representativeName},
-                   #{capitalStock}, #{employeeNumber}, #{companySizeMale},
-                   #{companySizeFemale}, #{businessSummary}, #{companyUrl},
-                   #{foundingYear}, #{dateOfEstablishment}::date, #{qualificationGrade},
-                   #{workplaceInfoMergeKey}
-               )
-        ON CONFLICT (corporate_number) DO UPDATE SET
-                                                     name = EXCLUDED.name,
-                                                     kana = EXCLUDED.kana,
-                                                     name_en = EXCLUDED.name_en,
-                                                     postal_code = EXCLUDED.postal_code,
-                                                     location = EXCLUDED.location,
-                                                     process = EXCLUDED.process,
-                                                     aggregated_year = EXCLUDED.aggregated_year,
-                                                     status = EXCLUDED.status,
-                                                     close_date = EXCLUDED.close_date,
-                                                     close_cause = EXCLUDED.close_cause,
-                                                     kind = EXCLUDED.kind,
-                                                     representative_name = EXCLUDED.representative_name,
-                                                     capital_stock = EXCLUDED.capital_stock,
-                                                     employee_number = EXCLUDED.employee_number,
-                                                     company_size_male = EXCLUDED.company_size_male,
-                                                     company_size_female = EXCLUDED.company_size_female,
-                                                     business_summary = EXCLUDED.business_summary,
-                                                     company_url = EXCLUDED.company_url,
-                                                     founding_year = EXCLUDED.founding_year,
+        INSERT INTO company (corporate_number, name, kana, name_en, postal_code,
+                             location, process, aggregated_year, status, close_date,
+                             close_cause, kind, representative_name, capital_stock,
+                             employee_number, company_size_male, company_size_female,
+                             business_summary, company_url, founding_year,
+                             date_of_establishment, qualification_grade)
+        VALUES (#{corporateNumber}, #{name}, #{kana}, #{nameEn}, #{postalCode},
+                #{location}, #{process}, #{aggregatedYear}, #{status},
+                #{closeDate}::date, #{closeCause}, #{kind}, #{representativeName},
+                #{capitalStock}, #{employeeNumber}, #{companySizeMale},
+                #{companySizeFemale}, #{businessSummary}, #{companyUrl},
+                #{foundingYear}, #{dateOfEstablishment}::date, #{qualificationGrade})
+        ON CONFLICT (corporate_number) DO UPDATE SET name                  = EXCLUDED.name,
+                                                     kana                  = EXCLUDED.kana,
+                                                     name_en               = EXCLUDED.name_en,
+                                                     postal_code           = EXCLUDED.postal_code,
+                                                     location              = EXCLUDED.location,
+                                                     process               = EXCLUDED.process,
+                                                     aggregated_year       = EXCLUDED.aggregated_year,
+                                                     status                = EXCLUDED.status,
+                                                     close_date            = EXCLUDED.close_date,
+                                                     close_cause           = EXCLUDED.close_cause,
+                                                     kind                  = EXCLUDED.kind,
+                                                     representative_name   = EXCLUDED.representative_name,
+                                                     capital_stock         = EXCLUDED.capital_stock,
+                                                     employee_number       = EXCLUDED.employee_number,
+                                                     company_size_male     = EXCLUDED.company_size_male,
+                                                     company_size_female   = EXCLUDED.company_size_female,
+                                                     business_summary      = EXCLUDED.business_summary,
+                                                     company_url           = EXCLUDED.company_url,
+                                                     founding_year         = EXCLUDED.founding_year,
                                                      date_of_establishment = EXCLUDED.date_of_establishment,
-                                                     qualification_grade = EXCLUDED.qualification_grade,
-                                                     workplace_info = EXCLUDED.workplace_info,
-                                                     updated_at = now()
+                                                     qualification_grade   = EXCLUDED.qualification_grade,
+                                                     updated_at            = now()
         WHERE (
                company.name,
                company.kana,
@@ -67,32 +59,28 @@
                company.company_url,
                company.founding_year,
                company.date_of_establishment,
-               company.qualification_grade,
-               company.workplace_info
-                  ) IS DISTINCT FROM (
-                                      EXCLUDED.name,
-                                      EXCLUDED.kana,
-                                      EXCLUDED.name_en,
-                                      EXCLUDED.postal_code,
-                                      EXCLUDED.location,
-                                      EXCLUDED.process,
-                                      EXCLUDED.aggregated_year,
-                                      EXCLUDED.status,
-                                      EXCLUDED.close_date,
-                                      EXCLUDED.close_cause,
-                                      EXCLUDED.kind,
-                                      EXCLUDED.representative_name,
-                                      EXCLUDED.capital_stock,
-                                      EXCLUDED.employee_number,
-                                      EXCLUDED.company_size_male,
-                                      EXCLUDED.company_size_female,
-                                      EXCLUDED.business_summary,
-                                      EXCLUDED.company_url,
-                                      EXCLUDED.founding_year,
-                                      EXCLUDED.date_of_establishment,
-                                      EXCLUDED.qualification_grade,
-                                      EXCLUDED.workplace_info
-            )
+               company.qualification_grade) IS DISTINCT FROM (
+                                                              EXCLUDED.name,
+                                                              EXCLUDED.kana,
+                                                              EXCLUDED.name_en,
+                                                              EXCLUDED.postal_code,
+                                                              EXCLUDED.location,
+                                                              EXCLUDED.process,
+                                                              EXCLUDED.aggregated_year,
+                                                              EXCLUDED.status,
+                                                              EXCLUDED.close_date,
+                                                              EXCLUDED.close_cause,
+                                                              EXCLUDED.kind,
+                                                              EXCLUDED.representative_name,
+                                                              EXCLUDED.capital_stock,
+                                                              EXCLUDED.employee_number,
+                                                              EXCLUDED.company_size_male,
+                                                              EXCLUDED.company_size_female,
+                                                              EXCLUDED.business_summary,
+                                                              EXCLUDED.company_url,
+                                                              EXCLUDED.founding_year,
+                                                              EXCLUDED.date_of_establishment,
+                                                              EXCLUDED.qualification_grade)
     </update>
 
     <update id="upsertPatent">
@@ -678,7 +666,7 @@
         ON CONFLICT (company_id, certification_id) DO UPDATE SET
                                                                  deleted = false,
                                                                  updated_at = now()
-        WHERE company_certification.deleted IS DISTINCT FROM false
+        WHERE company_certification.deleted IS NOT false
     </update>
 
     <update id="upsertCompanySubsidy">
@@ -719,12 +707,9 @@
 
     <update id="upsertCompanyWorkplaceInfo">
         UPDATE company
-        SET workplace_info = w.workplace_info_id,
-            updated_at = now()
-        FROM workplace_info w
-        WHERE w.merge_key = #{mergeKey}
-          AND company.corporate_number = #{corporateNumber}
-          AND company.workplace_info IS DISTINCT FROM w.workplace_info_id
+        SET workplace_info = #{mergeKey},
+            updated_at     = now()
+        WHERE company.corporate_number = #{corporateNumber}
+          AND company.workplace_info IS DISTINCT FROM #{mergeKey}
     </update>
-
 </mapper>

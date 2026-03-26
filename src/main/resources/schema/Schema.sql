@@ -231,10 +231,10 @@ CREATE TABLE company
     founding_year         INTEGER,
     date_of_establishment DATE,
     qualification_grade   VARCHAR(255),
-    workplace_info        BIGINT,
+    workplace_info        TEXT,
     updated_at            TIMESTAMPTZ,
     inserted_at           TIMESTAMPTZ                 DEFAULT now(),
-    FOREIGN KEY (workplace_info) REFERENCES workplace_info (workplace_info_id)
+    FOREIGN KEY (workplace_info) REFERENCES workplace_info (merge_key)
 );
 
 
