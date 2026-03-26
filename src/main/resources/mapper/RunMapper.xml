@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.java.companyhouse.mapper.RunMapper">
+
+    <insert id="insertRunCompany">
+        INSERT INTO run_company (run_id, corporate_number)
+        VALUES (#{runId}, #{corporateNumber})
+        ON CONFLICT DO NOTHING
+    </insert>
+    <insert id="insertRunPatent">
+        INSERT INTO run_patent (run_id, merge_key)
+        VALUES (#{runId}, #{mergeKey})
+        ON CONFLICT DO NOTHING
+    </insert>
+
+    <insert id="insertRunClassification">
+        INSERT INTO run_classification (run_id, merge_key, patent_merge_key)
+        VALUES (#{runId}, #{mergeKey}, #{patentMergeKey})
+        ON CONFLICT DO NOTHING
+    </insert>
+
+    <insert id="insertRunFinance">
+        INSERT INTO run_finance (run_id, corporate_number, merge_key)
+        VALUES (#{runId}, #{corporateNumber}, #{mergeKey})
+        ON CONFLICT DO NOTHING
+    </insert>
+
+    <insert id="insertRunMajorShareholder">
+        INSERT INTO run_major_shareholder (run_id, finance_merge_key, merge_key)
+        VALUES (#{runId}, #{financeMergeKey}, #{mergeKey})
+        ON CONFLICT DO NOTHING
+    </insert>
+
+    <insert id="insertRunManagementIndex">
+        INSERT INTO run_management_index (run_id, finance_merge_key, merge_key)
+        VALUES (#{runId}, #{financeMergeKey}, #{mergeKey})
+        ON CONFLICT DO NOTHING
+    </insert>
+
+    <insert id="insertRunCommendation">
+        INSERT INTO run_commendation (run_id, corporate_number, merge_key)
+        VALUES (#{runId}, #{corporateNumber}, #{mergeKey})
+        ON CONFLICT DO NOTHING
+    </insert>
+
+    <insert id="insertRunCertification">
+        INSERT INTO run_certification (run_id, corporate_number, merge_key)
+        VALUES (#{runId}, #{corporateNumber}, #{mergeKey})
+        ON CONFLICT DO NOTHING
+    </insert>
+
+    <insert id="insertRunSubsidy">
+        INSERT INTO run_subsidy (run_id, corporate_number, merge_key)
+        VALUES (#{runId}, #{corporateNumber}, #{mergeKey})
+        ON CONFLICT DO NOTHING
+    </insert>
+
+    <insert id="insertRunProcurement">
+        INSERT INTO run_procurement (run_id, corporate_number, merge_key)
+        VALUES (#{runId}, #{corporateNumber}, #{mergeKey})
+        ON CONFLICT DO NOTHING
+    </insert>
+
+    <insert id="insertRunCompanyItem">
+        INSERT INTO run_company_item (run_id, corporate_number, merge_key)
+        VALUES (#{runId}, #{corporateNumber}, #{mergeKey})
+        ON CONFLICT DO NOTHING
+    </insert>
+
+</mapper>
