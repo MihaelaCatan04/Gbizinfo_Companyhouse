@@ -24,7 +24,7 @@ CREATE TABLE base_info
     average_continuous_service_years           DOUBLE PRECISION,
     average_age                                DOUBLE PRECISION,
     month_average_predetermined_overtime_hours DOUBLE PRECISION,
-    inserted_at                                TIMESTAMPTZ        DEFAULT now()
+    inserted_at                                TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE certification
@@ -36,15 +36,7 @@ CREATE TABLE certification
     target                 VARCHAR(255),
     government_departments VARCHAR(255),
     category               VARCHAR(255),
-    inserted_at            TIMESTAMPTZ        DEFAULT now()
-);
-
-CREATE TABLE import_checkpoint
-(
-    run_id         VARCHAR(36)  NOT NULL DEFAULT '',
-    zip_entry_name VARCHAR(255) NOT NULL,
-    completed_at   TIMESTAMPTZ           DEFAULT now(),
-    PRIMARY KEY (run_id, zip_entry_name)
+    inserted_at            TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE classification
@@ -54,7 +46,7 @@ CREATE TABLE classification
     code_value        VARCHAR(255),
     code_name         VARCHAR(255),
     japanese          VARCHAR(255),
-    inserted_at       TIMESTAMPTZ        DEFAULT now()
+    inserted_at       TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE commendation
@@ -67,7 +59,7 @@ CREATE TABLE commendation
     category               VARCHAR(255),
     government_departments VARCHAR(255),
     note                   TEXT,
-    inserted_at            TIMESTAMPTZ        DEFAULT now()
+    inserted_at            TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE compatibility_of_childcare_and_work
@@ -78,8 +70,7 @@ CREATE TABLE compatibility_of_childcare_and_work
     number_of_maternity_leave              INTEGER,
     paternity_leave_acquisition_num        INTEGER,
     maternity_leave_acquisition_num        INTEGER,
-    inserted_at                            TIMESTAMPTZ        DEFAULT now()
-
+    inserted_at                            TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE finance
@@ -88,29 +79,27 @@ CREATE TABLE finance
     merge_key              TEXT NOT NULL UNIQUE,
     accounting_standards   VARCHAR(255),
     fiscal_year_cover_page TEXT,
-    inserted_at            TIMESTAMPTZ        DEFAULT now()
+    inserted_at            TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE item_info
 (
-    info_id     BIGINT PRIMARY KEY    DEFAULT nextval('item_info_id_seq'),
-    merge_key   TEXT         NOT NULL UNIQUE,
+    info_id     BIGINT PRIMARY KEY DEFAULT nextval('item_info_id_seq'),
+    merge_key   TEXT NOT NULL UNIQUE,
     value       VARCHAR(255) NOT NULL,
-    is_industry BOOLEAN      NOT NULL,
-    deleted     BOOLEAN      NOT NULL DEFAULT FALSE,
-    inserted_at TIMESTAMPTZ           DEFAULT now()
+    is_industry BOOLEAN NOT NULL,
+    deleted     BOOLEAN NOT NULL DEFAULT FALSE,
+    inserted_at TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE major_shareholder
 (
     major_shareholder_id    BIGINT PRIMARY KEY DEFAULT nextval('major_shareholder_id_seq'),
-    merge_key               TEXT             NOT NULL UNIQUE,
+    merge_key               TEXT NOT NULL UNIQUE,
     name_major_stakeholders VARCHAR(255),
     shareholding_ratio      DOUBLE PRECISION NOT NULL,
-    inserted_at             TIMESTAMPTZ        DEFAULT now()
+    inserted_at             TIMESTAMPTZ DEFAULT now()
 );
-
-
 
 CREATE TABLE management_index
 (
@@ -141,43 +130,43 @@ CREATE TABLE management_index
     total_assets_summary_of_business_results_unit_ref             VARCHAR(10),
     number_of_employees                                           BIGINT,
     number_of_employees_unit_ref                                  VARCHAR(10),
-    inserted_at                                                   TIMESTAMPTZ        DEFAULT now()
+    inserted_at                                                   TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE patent
 (
     patent_id           BIGINT PRIMARY KEY DEFAULT nextval('patent_id_seq'),
-    merge_key           TEXT         NOT NULL UNIQUE,
+    merge_key           TEXT NOT NULL UNIQUE,
     patent_type         VARCHAR(255) NOT NULL,
     registration_number VARCHAR(255) NOT NULL,
     application_date    DATE,
-    title               TEXT         NOT NULL,
+    title               TEXT NOT NULL,
     url                 TEXT,
-    inserted_at         TIMESTAMPTZ        DEFAULT now()
+    inserted_at         TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE procurement
 (
     procurement_id         BIGINT PRIMARY KEY DEFAULT nextval('procurement_id_seq'),
-    merge_key              TEXT         NOT NULL UNIQUE,
+    merge_key              TEXT NOT NULL UNIQUE,
     date_of_order          TIMESTAMPTZ,
     title                  VARCHAR(255) NOT NULL,
     amount                 BIGINT,
     government_departments VARCHAR(255),
     note                   TEXT,
-    inserted_at            TIMESTAMPTZ        DEFAULT now()
+    inserted_at            TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE subsidy
 (
     subsidy_id             BIGINT PRIMARY KEY DEFAULT nextval('subsidy_id_seq'),
-    merge_key              TEXT         NOT NULL UNIQUE,
+    merge_key              TEXT NOT NULL UNIQUE,
     date_of_approval       DATE,
     title                  VARCHAR(255) NOT NULL,
     amount                 BIGINT,
     target                 VARCHAR(255),
     government_departments VARCHAR(255),
-    inserted_at            TIMESTAMPTZ        DEFAULT now()
+    inserted_at            TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE women_activity_info
@@ -190,7 +179,7 @@ CREATE TABLE women_activity_info
     gender_total_of_manager        DOUBLE PRECISION,
     female_share_of_officers       DOUBLE PRECISION,
     gender_total_of_officers       DOUBLE PRECISION,
-    inserted_at                    TIMESTAMPTZ        DEFAULT now()
+    inserted_at                    TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE workplace_info
@@ -200,7 +189,7 @@ CREATE TABLE workplace_info
     base_info                           BIGINT,
     women_activity_info                 BIGINT,
     compatibility_of_childcare_and_work BIGINT,
-    inserted_at                         TIMESTAMPTZ        DEFAULT now(),
+    inserted_at                         TIMESTAMPTZ DEFAULT now(),
     FOREIGN KEY (base_info) REFERENCES base_info (base_info_id),
     FOREIGN KEY (women_activity_info) REFERENCES women_activity_info (women_activity_info_id),
     FOREIGN KEY (compatibility_of_childcare_and_work) REFERENCES compatibility_of_childcare_and_work (compatibility_of_childcare_and_work_id)
@@ -233,18 +222,18 @@ CREATE TABLE company
     qualification_grade   VARCHAR(255),
     workplace_info        TEXT,
     updated_at            TIMESTAMPTZ,
-    inserted_at           TIMESTAMPTZ        DEFAULT now(),
+    inserted_at           TIMESTAMPTZ DEFAULT now(),
     FOREIGN KEY (workplace_info) REFERENCES workplace_info (merge_key)
 );
 
-
 CREATE TABLE company_certification
 (
-    company_id       BIGINT  NOT NULL,
-    certification_id BIGINT  NOT NULL,
-    inserted_at      TIMESTAMPTZ      DEFAULT now(),
+    company_id       BIGINT NOT NULL,
+    certification_id BIGINT NOT NULL,
+    inserted_at      TIMESTAMPTZ DEFAULT now(),
     deleted          BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at       TIMESTAMPTZ,
+    sync_id          UUID,
     FOREIGN KEY (company_id) REFERENCES company (company_id),
     FOREIGN KEY (certification_id) REFERENCES certification (certification_id),
     UNIQUE (company_id, certification_id)
@@ -252,11 +241,12 @@ CREATE TABLE company_certification
 
 CREATE TABLE company_commendation
 (
-    company_id      BIGINT  NOT NULL,
-    commendation_id BIGINT  NOT NULL,
-    inserted_at     TIMESTAMPTZ      DEFAULT now(),
+    company_id      BIGINT NOT NULL,
+    commendation_id BIGINT NOT NULL,
+    inserted_at     TIMESTAMPTZ DEFAULT now(),
     deleted         BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at      TIMESTAMPTZ,
+    sync_id         UUID,
     FOREIGN KEY (company_id) REFERENCES company (company_id),
     FOREIGN KEY (commendation_id) REFERENCES commendation (commendation_id),
     UNIQUE (company_id, commendation_id)
@@ -264,11 +254,12 @@ CREATE TABLE company_commendation
 
 CREATE TABLE company_finance
 (
-    company_id  BIGINT  NOT NULL,
-    finance_id  BIGINT  NOT NULL,
-    inserted_at TIMESTAMPTZ      DEFAULT now(),
+    company_id  BIGINT NOT NULL,
+    finance_id  BIGINT NOT NULL,
+    inserted_at TIMESTAMPTZ DEFAULT now(),
     deleted     BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at  TIMESTAMPTZ,
+    sync_id     UUID,
     FOREIGN KEY (company_id) REFERENCES company (company_id),
     FOREIGN KEY (finance_id) REFERENCES finance (finance_id),
     UNIQUE (company_id, finance_id)
@@ -276,21 +267,23 @@ CREATE TABLE company_finance
 
 CREATE TABLE company_item
 (
-    company_id  BIGINT  NOT NULL REFERENCES company (company_id),
-    info_id     BIGINT  NOT NULL REFERENCES item_info (info_id),
-    inserted_at TIMESTAMPTZ      DEFAULT now(),
+    company_id  BIGINT NOT NULL REFERENCES company (company_id),
+    info_id     BIGINT NOT NULL REFERENCES item_info (info_id),
+    inserted_at TIMESTAMPTZ DEFAULT now(),
     deleted     BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at  TIMESTAMPTZ,
+    sync_id     UUID,
     UNIQUE (company_id, info_id)
 );
 
 CREATE TABLE company_patent
 (
-    company_id  BIGINT  NOT NULL,
-    patent_id   BIGINT  NOT NULL,
-    inserted_at TIMESTAMPTZ      DEFAULT now(),
+    company_id  BIGINT NOT NULL,
+    patent_id   BIGINT NOT NULL,
+    inserted_at TIMESTAMPTZ DEFAULT now(),
     deleted     BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at  TIMESTAMPTZ,
+    sync_id     UUID,
     FOREIGN KEY (company_id) REFERENCES company (company_id),
     FOREIGN KEY (patent_id) REFERENCES patent (patent_id),
     UNIQUE (company_id, patent_id)
@@ -298,11 +291,12 @@ CREATE TABLE company_patent
 
 CREATE TABLE company_procurement
 (
-    company_id     BIGINT  NOT NULL,
-    procurement_id BIGINT  NOT NULL,
-    inserted_at    TIMESTAMPTZ      DEFAULT now(),
+    company_id     BIGINT NOT NULL,
+    procurement_id BIGINT NOT NULL,
+    inserted_at    TIMESTAMPTZ DEFAULT now(),
     deleted        BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at     TIMESTAMPTZ,
+    sync_id        UUID,
     FOREIGN KEY (company_id) REFERENCES company (company_id),
     FOREIGN KEY (procurement_id) REFERENCES procurement (procurement_id),
     UNIQUE (company_id, procurement_id)
@@ -310,11 +304,12 @@ CREATE TABLE company_procurement
 
 CREATE TABLE company_subsidy
 (
-    company_id  BIGINT  NOT NULL,
-    subsidy_id  BIGINT  NOT NULL,
-    inserted_at TIMESTAMPTZ      DEFAULT now(),
+    company_id  BIGINT NOT NULL,
+    subsidy_id  BIGINT NOT NULL,
+    inserted_at TIMESTAMPTZ DEFAULT now(),
     deleted     BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at  TIMESTAMPTZ,
+    sync_id     UUID,
     FOREIGN KEY (company_id) REFERENCES company (company_id),
     FOREIGN KEY (subsidy_id) REFERENCES subsidy (subsidy_id),
     UNIQUE (company_id, subsidy_id)
@@ -322,11 +317,12 @@ CREATE TABLE company_subsidy
 
 CREATE TABLE finance_management
 (
-    finance_id          BIGINT  NOT NULL,
-    management_index_id BIGINT  NOT NULL,
-    inserted_at         TIMESTAMPTZ      DEFAULT now(),
+    finance_id          BIGINT NOT NULL,
+    management_index_id BIGINT NOT NULL,
+    inserted_at         TIMESTAMPTZ DEFAULT now(),
     deleted             BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at          TIMESTAMPTZ,
+    sync_id             UUID,
     FOREIGN KEY (finance_id) REFERENCES finance (finance_id),
     FOREIGN KEY (management_index_id) REFERENCES management_index (management_index_id),
     UNIQUE (finance_id, management_index_id)
@@ -334,11 +330,12 @@ CREATE TABLE finance_management
 
 CREATE TABLE finance_shareholder
 (
-    finance_id           BIGINT  NOT NULL,
-    major_shareholder_id BIGINT  NOT NULL,
-    inserted_at          TIMESTAMPTZ      DEFAULT now(),
+    finance_id           BIGINT NOT NULL,
+    major_shareholder_id BIGINT NOT NULL,
+    inserted_at          TIMESTAMPTZ DEFAULT now(),
     deleted              BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at           TIMESTAMPTZ,
+    sync_id              UUID,
     FOREIGN KEY (finance_id) REFERENCES finance (finance_id),
     FOREIGN KEY (major_shareholder_id) REFERENCES major_shareholder (major_shareholder_id),
     UNIQUE (finance_id, major_shareholder_id)
@@ -346,11 +343,12 @@ CREATE TABLE finance_shareholder
 
 CREATE TABLE patent_classification
 (
-    patent_id         BIGINT  NOT NULL,
-    classification_id BIGINT  NOT NULL,
-    inserted_at       TIMESTAMPTZ      DEFAULT now(),
+    patent_id         BIGINT NOT NULL,
+    classification_id BIGINT NOT NULL,
+    inserted_at       TIMESTAMPTZ DEFAULT now(),
     deleted           BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at        TIMESTAMPTZ,
+    sync_id           UUID,
     FOREIGN KEY (patent_id) REFERENCES patent (patent_id),
     FOREIGN KEY (classification_id) REFERENCES classification (classification_id),
     UNIQUE (patent_id, classification_id)
@@ -370,3 +368,15 @@ CREATE INDEX idx_company_finance_company_id ON company_finance (company_id);
 CREATE INDEX idx_finance_shareholder_finance_id ON finance_shareholder (finance_id);
 CREATE INDEX idx_finance_management_finance_id ON finance_management (finance_id);
 CREATE INDEX idx_patent_classification_patent_id ON patent_classification (patent_id);
+
+CREATE INDEX idx_company_item_company_sync ON company_item (company_id, sync_id);
+CREATE INDEX idx_company_patent_company_sync ON company_patent (company_id, sync_id);
+CREATE INDEX idx_company_certification_company_sync ON company_certification (company_id, sync_id);
+CREATE INDEX idx_company_subsidy_company_sync ON company_subsidy (company_id, sync_id);
+CREATE INDEX idx_company_commendation_company_sync ON company_commendation (company_id, sync_id);
+CREATE INDEX idx_company_procurement_company_sync ON company_procurement (company_id, sync_id);
+CREATE INDEX idx_company_finance_company_sync ON company_finance (company_id, sync_id);
+
+CREATE INDEX idx_finance_shareholder_finance_sync ON finance_shareholder (finance_id, sync_id);
+CREATE INDEX idx_finance_management_finance_sync ON finance_management (finance_id, sync_id);
+CREATE INDEX idx_patent_classification_patent_sync ON patent_classification (patent_id, sync_id);

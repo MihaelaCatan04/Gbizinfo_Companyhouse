@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -34,26 +35,22 @@ public class ManagementIndexService {
         String financeMergeKey = snapshot.getFinanceMergeKey();
         List<ManagementIndexDto> managementIndexes = snapshot.getManagementIndexes() == null ? Collections.emptyList() : snapshot.getManagementIndexes();
 
-        for (ManagementIndexDto dto : managementIndexes) {
-            if (dto == null) {
-                continue;
-            }
-            managementIndexMapper.upsertManagementIndex(dto);
-            managementIndexMapper.upsertFinanceManagement(dto);
-        }
-
         if (managementIndexes.isEmpty()) {
             managementIndexMapper.softDeleteAllFinanceManagementIndexes(financeMergeKey);
             return;
         }
 
-        List<String> mergeKeys = managementIndexes.stream().filter(dto -> dto != null && dto.getMergeKey() != null).map(ManagementIndexDto::getMergeKey).toList();
+        String syncId = UUID.randomUUID().toString();
 
-        if (mergeKeys.isEmpty()) {
-            managementIndexMapper.softDeleteAllFinanceManagementIndexes(financeMergeKey);
-            return;
+        for (ManagementIndexDto dto : managementIndexes) {
+            if (dto == null || dto.getMergeKey() == null) {
+                continue;
+            }
+
+            managementIndexMapper.upsertManagementIndex(dto);
+            managementIndexMapper.upsertFinanceManagement(dto.getMergeKey(), financeMergeKey, syncId);
         }
 
-        managementIndexMapper.softDeleteMissingFinanceManagementIndexes(financeMergeKey, mergeKeys);
+        managementIndexMapper.softDeleteMissingFinanceManagementIndexes(financeMergeKey, syncId);
     }
 }

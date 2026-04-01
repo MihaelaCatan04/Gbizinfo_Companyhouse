@@ -30,15 +30,24 @@
     </update>
 
     <update id="upsertCompanyProcurement">
-        INSERT INTO company_procurement (company_id, procurement_id, inserted_at, deleted)
-        SELECT c.company_id, p.procurement_id, now(), false
+        INSERT INTO company_procurement (
+            company_id,
+            procurement_id,
+            inserted_at,
+            updated_at,
+            deleted,
+            sync_id
+        )
+        SELECT c.company_id, p.procurement_id, now(), now(), false, #{syncId}::uuid
         FROM company c
-                 JOIN procurement p ON p.merge_key = #{mergeKey}
-        WHERE c.corporate_number = #{corporateNumber}
+                 JOIN procurement p ON p.merge_key = #{dto.mergeKey}
+        WHERE c.corporate_number = #{dto.corporateNumber}
         ON CONFLICT (company_id, procurement_id) DO UPDATE SET
                                                                deleted = false,
-                                                               updated_at = now()
+                                                               updated_at = now(),
+                                                               sync_id = EXCLUDED.sync_id
         WHERE company_procurement.deleted IS DISTINCT FROM false
+           OR company_procurement.sync_id IS DISTINCT FROM EXCLUDED.sync_id
     </update>
 
     <update id="softDeleteAllCompanyProcurements">
@@ -56,21 +65,14 @@
     <update id="softDeleteMissingCompanyProcurements">
         UPDATE company_procurement cp
         SET deleted = true,
-        updated_at = now()
+            updated_at = now()
         WHERE cp.deleted = false
-        AND cp.company_id = (
-        SELECT c.company_id
-        FROM company c
-        WHERE c.corporate_number = #{corporateNumber}
+          AND cp.company_id = (
+            SELECT c.company_id
+            FROM company c
+            WHERE c.corporate_number = #{corporateNumber}
         )
-        AND cp.procurement_id NOT IN (
-        SELECT p.procurement_id
-        FROM procurement p
-        WHERE p.merge_key IN
-        <foreach item="key" collection="mergeKeys" open="(" separator="," close=")">
-            #{key}
-        </foreach>
-        )
+          AND cp.sync_id IS DISTINCT FROM #{syncId}::uuid
     </update>
 
 </mapper>

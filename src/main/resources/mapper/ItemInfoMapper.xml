@@ -22,15 +22,24 @@
     </update>
 
     <update id="upsertCompanyItem">
-        INSERT INTO company_item (company_id, info_id, inserted_at, deleted)
-        SELECT c.company_id, i.info_id, now(), false
+        INSERT INTO company_item (
+            company_id,
+            info_id,
+            inserted_at,
+            updated_at,
+            deleted,
+            sync_id
+        )
+        SELECT c.company_id, i.info_id, now(), now(), false, #{syncId}::uuid
         FROM company c
-                 JOIN item_info i ON i.merge_key = #{mergeKey}
-        WHERE c.corporate_number = #{corporateNumber}
+                 JOIN item_info i ON i.merge_key = #{dto.mergeKey}
+        WHERE c.corporate_number = #{dto.corporateNumber}
         ON CONFLICT (company_id, info_id) DO UPDATE SET
                                                         deleted = false,
-                                                        updated_at = now()
+                                                        updated_at = now(),
+                                                        sync_id = EXCLUDED.sync_id
         WHERE company_item.deleted IS DISTINCT FROM false
+           OR company_item.sync_id IS DISTINCT FROM EXCLUDED.sync_id
     </update>
 
     <update id="softDeleteAllCompanyItems">
@@ -48,21 +57,14 @@
     <update id="softDeleteMissingCompanyItems">
         UPDATE company_item ci
         SET deleted = true,
-        updated_at = now()
+            updated_at = now()
         WHERE ci.deleted = false
-        AND ci.company_id = (
-        SELECT c.company_id
-        FROM company c
-        WHERE c.corporate_number = #{corporateNumber}
+          AND ci.company_id = (
+            SELECT c.company_id
+            FROM company c
+            WHERE c.corporate_number = #{corporateNumber}
         )
-        AND ci.info_id NOT IN (
-        SELECT i.info_id
-        FROM item_info i
-        WHERE i.merge_key IN
-        <foreach item="key" collection="mergeKeys" open="(" separator="," close=")">
-            #{key}
-        </foreach>
-        )
+          AND ci.sync_id IS DISTINCT FROM #{syncId}::uuid
     </update>
 
 </mapper>

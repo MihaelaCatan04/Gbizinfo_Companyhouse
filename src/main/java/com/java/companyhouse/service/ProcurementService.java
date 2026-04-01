@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,18 +20,18 @@ public class ProcurementService extends AbstractBatchService<ProcurementDto> {
         String corporateNumber = snapshot.getCorporateNumber();
         List<ProcurementDto> procurements = snapshot.getEntities();
 
-        for (ProcurementDto dto : procurements) {
-            procurementMapper.upsertProcurement(dto);
-            procurementMapper.upsertCompanyProcurement(dto);
-        }
-
         if (procurements.isEmpty()) {
             procurementMapper.softDeleteAllCompanyProcurements(corporateNumber);
             return;
         }
 
-        List<String> mergeKeys = procurements.stream().map(ProcurementDto::getMergeKey).toList();
+        String syncId = UUID.randomUUID().toString();
 
-        procurementMapper.softDeleteMissingCompanyProcurements(corporateNumber, mergeKeys);
+        for (ProcurementDto dto : procurements) {
+            procurementMapper.upsertProcurement(dto);
+            procurementMapper.upsertCompanyProcurement(dto, syncId);
+        }
+
+        procurementMapper.softDeleteMissingCompanyProcurements(corporateNumber, syncId);
     }
 }

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,18 +20,18 @@ public class CertificationService extends AbstractBatchService<CertificationDto>
         String corporateNumber = snapshot.getCorporateNumber();
         List<CertificationDto> certifications = snapshot.getEntities();
 
-        for (CertificationDto dto : certifications) {
-            certificationMapper.upsertCertification(dto);
-            certificationMapper.upsertCompanyCertification(dto);
-        }
-
         if (certifications.isEmpty()) {
             certificationMapper.softDeleteAllCompanyCertifications(corporateNumber);
             return;
         }
 
-        List<String> mergeKeys = certifications.stream().map(CertificationDto::getMergeKey).toList();
+        String syncId = UUID.randomUUID().toString();
 
-        certificationMapper.softDeleteMissingCompanyCertifications(corporateNumber, mergeKeys);
+        for (CertificationDto dto : certifications) {
+            certificationMapper.upsertCertification(dto);
+            certificationMapper.upsertCompanyCertification(dto, syncId);
+        }
+
+        certificationMapper.softDeleteMissingCompanyCertifications(corporateNumber, syncId);
     }
 }

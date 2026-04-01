@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,18 +20,18 @@ public class SubsidyService extends AbstractBatchService<SubsidyDto> {
         String corporateNumber = snapshot.getCorporateNumber();
         List<SubsidyDto> subsidies = snapshot.getEntities();
 
-        for (SubsidyDto dto : subsidies) {
-            subsidyMapper.upsertSubsidy(dto);
-            subsidyMapper.upsertCompanySubsidy(dto);
-        }
-
         if (subsidies.isEmpty()) {
             subsidyMapper.softDeleteAllCompanySubsidies(corporateNumber);
             return;
         }
 
-        List<String> mergeKeys = subsidies.stream().map(SubsidyDto::getMergeKey).toList();
+        String syncId = UUID.randomUUID().toString();
 
-        subsidyMapper.softDeleteMissingCompanySubsidies(corporateNumber, mergeKeys);
+        for (SubsidyDto dto : subsidies) {
+            subsidyMapper.upsertSubsidy(dto);
+            subsidyMapper.upsertCompanySubsidy(dto, syncId);
+        }
+
+        subsidyMapper.softDeleteMissingCompanySubsidies(corporateNumber, syncId);
     }
 }

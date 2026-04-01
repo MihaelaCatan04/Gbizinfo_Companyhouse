@@ -30,15 +30,24 @@
     </update>
 
     <update id="upsertCompanyPatent">
-        INSERT INTO company_patent (company_id, patent_id, inserted_at, deleted)
-        SELECT c.company_id, p.patent_id, now(), false
+        INSERT INTO company_patent (
+            company_id,
+            patent_id,
+            inserted_at,
+            updated_at,
+            deleted,
+            sync_id
+        )
+        SELECT c.company_id, p.patent_id, now(), now(), false, #{syncId}::uuid
         FROM company c
-                 JOIN patent p ON p.merge_key = #{mergeKey}
-        WHERE c.corporate_number = #{corporateNumber}
+                 JOIN patent p ON p.merge_key = #{dto.mergeKey}
+        WHERE c.corporate_number = #{dto.corporateNumber}
         ON CONFLICT (company_id, patent_id) DO UPDATE SET
                                                           deleted = false,
-                                                          updated_at = now()
+                                                          updated_at = now(),
+                                                          sync_id = EXCLUDED.sync_id
         WHERE company_patent.deleted IS DISTINCT FROM false
+           OR company_patent.sync_id IS DISTINCT FROM EXCLUDED.sync_id
     </update>
 
     <update id="softDeleteAllCompanyPatents">
@@ -56,21 +65,14 @@
     <update id="softDeleteMissingCompanyPatents">
         UPDATE company_patent cp
         SET deleted = true,
-        updated_at = now()
+            updated_at = now()
         WHERE cp.deleted = false
-        AND cp.company_id = (
-        SELECT c.company_id
-        FROM company c
-        WHERE c.corporate_number = #{corporateNumber}
+          AND cp.company_id = (
+            SELECT c.company_id
+            FROM company c
+            WHERE c.corporate_number = #{corporateNumber}
         )
-        AND cp.patent_id NOT IN (
-        SELECT p.patent_id
-        FROM patent p
-        WHERE p.merge_key IN
-        <foreach item="key" collection="mergeKeys" open="(" separator="," close=")">
-            #{key}
-        </foreach>
-        )
+          AND cp.sync_id IS DISTINCT FROM #{syncId}::uuid
     </update>
 
 </mapper>

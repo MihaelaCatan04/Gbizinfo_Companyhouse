@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,18 +20,17 @@ public class CommendationService extends AbstractBatchService<CommendationDto> {
         String corporateNumber = snapshot.getCorporateNumber();
         List<CommendationDto> commendations = snapshot.getEntities();
 
-        for (CommendationDto dto : commendations) {
-            commendationMapper.upsertCommendation(dto);
-            commendationMapper.upsertCompanyCommendation(dto);
-        }
-
         if (commendations.isEmpty()) {
             commendationMapper.softDeleteAllCompanyCommendations(corporateNumber);
             return;
         }
 
-        List<String> mergeKeys = commendations.stream().map(CommendationDto::getMergeKey).toList();
+        String syncId = UUID.randomUUID().toString();
 
-        commendationMapper.softDeleteMissingCompanyCommendations(corporateNumber, mergeKeys);
+        for (CommendationDto dto : commendations) {
+            commendationMapper.upsertCommendation(dto);
+            commendationMapper.upsertCompanyCommendation(dto, syncId);
+        }
+        commendationMapper.softDeleteMissingCompanyCommendations(corporateNumber, syncId);
     }
 }

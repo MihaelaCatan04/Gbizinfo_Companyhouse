@@ -22,15 +22,30 @@
     </update>
 
     <update id="upsertPatentClassification">
-        INSERT INTO patent_classification (patent_id, classification_id, inserted_at, deleted)
-        SELECT p.patent_id, c.classification_id, now(), false
+        INSERT INTO patent_classification (
+            patent_id,
+            classification_id,
+            inserted_at,
+            updated_at,
+            deleted,
+            sync_id
+        )
+        SELECT
+            p.patent_id,
+            c.classification_id,
+            now(),
+            now(),
+            false,
+            #{syncId}::uuid
         FROM patent p
                  JOIN classification c ON c.merge_key = #{mergeKey}
         WHERE p.merge_key = #{patentMergeKey}
         ON CONFLICT (patent_id, classification_id) DO UPDATE SET
                                                                  deleted = false,
-                                                                 updated_at = now()
+                                                                 updated_at = now(),
+                                                                 sync_id = EXCLUDED.sync_id
         WHERE patent_classification.deleted IS DISTINCT FROM false
+           OR patent_classification.sync_id IS DISTINCT FROM EXCLUDED.sync_id
     </update>
 
     <update id="softDeleteAllPatentClassifications">
@@ -48,21 +63,14 @@
     <update id="softDeleteMissingPatentClassifications">
         UPDATE patent_classification pc
         SET deleted = true,
-        updated_at = now()
+            updated_at = now()
         WHERE pc.deleted = false
-        AND pc.patent_id = (
-        SELECT p.patent_id
-        FROM patent p
-        WHERE p.merge_key = #{patentMergeKey}
+          AND pc.patent_id = (
+            SELECT p.patent_id
+            FROM patent p
+            WHERE p.merge_key = #{patentMergeKey}
         )
-        AND pc.classification_id NOT IN (
-        SELECT c.classification_id
-        FROM classification c
-        WHERE c.merge_key IN
-        <foreach item="key" collection="mergeKeys" open="(" separator="," close=")">
-            #{key}
-        </foreach>
-        )
+          AND pc.sync_id IS DISTINCT FROM #{syncId}::uuid
     </update>
 
 </mapper>

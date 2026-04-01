@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -21,10 +22,7 @@ public class ClassificationService {
 
     @Transactional
     public void receive(ClassificationBatchRequest request) {
-        List<PatentClassificationSnapshot> patents =
-                request == null || request.getPatents() == null
-                        ? Collections.emptyList()
-                        : request.getPatents();
+        List<PatentClassificationSnapshot> patents = request == null || request.getPatents() == null ? Collections.emptyList() : request.getPatents();
 
         for (PatentClassificationSnapshot snapshot : patents) {
             processPatent(snapshot);
@@ -37,28 +35,24 @@ public class ClassificationService {
         }
 
         String patentMergeKey = snapshot.getPatentMergeKey();
-        List<ClassificationDto> classifications =
-                snapshot.getClassifications() == null
-                        ? Collections.emptyList()
-                        : snapshot.getClassifications();
-
-        for (ClassificationDto dto : classifications) {
-            if (dto == null) {
-                continue;
-            }
-            classificationMapper.upsertClassification(dto);
-            classificationMapper.upsertPatentClassification(dto);
-        }
+        List<ClassificationDto> classifications = snapshot.getClassifications() == null ? Collections.emptyList() : snapshot.getClassifications();
 
         if (classifications.isEmpty()) {
             classificationMapper.softDeleteAllPatentClassifications(patentMergeKey);
             return;
         }
 
-        List<String> mergeKeys = classifications.stream()
-                .map(ClassificationDto::getMergeKey)
-                .toList();
+        String syncId = UUID.randomUUID().toString();
 
-        classificationMapper.softDeleteMissingPatentClassifications(patentMergeKey, mergeKeys);
+        for (ClassificationDto dto : classifications) {
+            if (dto == null || dto.getMergeKey() == null) {
+                continue;
+            }
+
+            classificationMapper.upsertClassification(dto);
+            classificationMapper.upsertPatentClassification(dto.getMergeKey(), patentMergeKey, syncId);
+        }
+
+        classificationMapper.softDeleteMissingPatentClassifications(patentMergeKey, syncId);
     }
 }

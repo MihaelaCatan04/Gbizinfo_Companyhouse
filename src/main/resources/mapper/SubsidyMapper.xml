@@ -30,15 +30,24 @@
     </update>
 
     <update id="upsertCompanySubsidy">
-        INSERT INTO company_subsidy (company_id, subsidy_id, inserted_at, deleted)
-        SELECT c.company_id, s.subsidy_id, now(), false
+        INSERT INTO company_subsidy (
+            company_id,
+            subsidy_id,
+            inserted_at,
+            updated_at,
+            deleted,
+            sync_id
+        )
+        SELECT c.company_id, s.subsidy_id, now(), now(), false, #{syncId}::uuid
         FROM company c
-                 JOIN subsidy s ON s.merge_key = #{mergeKey}
-        WHERE c.corporate_number = #{corporateNumber}
+                 JOIN subsidy s ON s.merge_key = #{dto.mergeKey}
+        WHERE c.corporate_number = #{dto.corporateNumber}
         ON CONFLICT (company_id, subsidy_id) DO UPDATE SET
                                                            deleted = false,
-                                                           updated_at = now()
+                                                           updated_at = now(),
+                                                           sync_id = EXCLUDED.sync_id
         WHERE company_subsidy.deleted IS DISTINCT FROM false
+           OR company_subsidy.sync_id IS DISTINCT FROM EXCLUDED.sync_id
     </update>
 
     <update id="softDeleteAllCompanySubsidies">
@@ -56,21 +65,14 @@
     <update id="softDeleteMissingCompanySubsidies">
         UPDATE company_subsidy cs
         SET deleted = true,
-        updated_at = now()
+            updated_at = now()
         WHERE cs.deleted = false
-        AND cs.company_id = (
-        SELECT c.company_id
-        FROM company c
-        WHERE c.corporate_number = #{corporateNumber}
+          AND cs.company_id = (
+            SELECT c.company_id
+            FROM company c
+            WHERE c.corporate_number = #{corporateNumber}
         )
-        AND cs.subsidy_id NOT IN (
-        SELECT s.subsidy_id
-        FROM subsidy s
-        WHERE s.merge_key IN
-        <foreach item="key" collection="mergeKeys" open="(" separator="," close=")">
-            #{key}
-        </foreach>
-        )
+          AND cs.sync_id IS DISTINCT FROM #{syncId}::uuid
     </update>
 
 </mapper>

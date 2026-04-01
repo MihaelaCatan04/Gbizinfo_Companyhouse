@@ -19,44 +19,55 @@
     </update>
 
     <update id="upsertFinanceShareholder">
-        INSERT INTO finance_shareholder (finance_id, major_shareholder_id, inserted_at, deleted)
-        SELECT f.finance_id, ms.major_shareholder_id, now(), false
+        INSERT INTO finance_shareholder (
+            finance_id,
+            major_shareholder_id,
+            inserted_at,
+            updated_at,
+            deleted,
+            sync_id
+        )
+        SELECT
+            f.finance_id,
+            ms.major_shareholder_id,
+            now(),
+            now(),
+            false,
+            #{syncId}::uuid
         FROM finance f
                  JOIN major_shareholder ms ON ms.merge_key = #{mergeKey}
         WHERE f.merge_key = #{financeMergeKey}
-        ON CONFLICT (finance_id, major_shareholder_id) DO UPDATE SET deleted    = false,
-                                                                     updated_at = now()
+        ON CONFLICT (finance_id, major_shareholder_id) DO UPDATE SET
+                                                                     deleted = false,
+                                                                     updated_at = now(),
+                                                                     sync_id = EXCLUDED.sync_id
         WHERE finance_shareholder.deleted IS DISTINCT FROM false
+           OR finance_shareholder.sync_id IS DISTINCT FROM EXCLUDED.sync_id
     </update>
 
     <update id="softDeleteAllFinanceShareholders">
         UPDATE finance_shareholder fs
-        SET deleted    = true,
+        SET deleted = true,
             updated_at = now()
         WHERE fs.deleted = false
-          AND fs.finance_id = (SELECT f.finance_id
-                               FROM finance f
-                               WHERE f.merge_key = #{financeMergeKey})
+          AND fs.finance_id = (
+            SELECT f.finance_id
+            FROM finance f
+            WHERE f.merge_key = #{financeMergeKey}
+        )
     </update>
 
     <update id="softDeleteMissingFinanceShareholders">
         UPDATE finance_shareholder fs
         SET deleted = true,
-        updated_at = now()
+            updated_at = now()
         WHERE fs.deleted = false
-        AND fs.finance_id = (
-        SELECT f.finance_id
-        FROM finance f
-        WHERE f.merge_key = #{financeMergeKey}
+          AND fs.finance_id = (
+            SELECT f.finance_id
+            FROM finance f
+            WHERE f.merge_key = #{financeMergeKey}
         )
-        AND fs.major_shareholder_id NOT IN (
-        SELECT ms.major_shareholder_id
-        FROM major_shareholder ms
-        WHERE ms.merge_key IN
-        <foreach item="key" collection="mergeKeys" open="(" separator="," close=")">
-            #{key}
-        </foreach>
-        )
+          AND fs.sync_id IS DISTINCT FROM #{syncId}::uuid
     </update>
 
 </mapper>

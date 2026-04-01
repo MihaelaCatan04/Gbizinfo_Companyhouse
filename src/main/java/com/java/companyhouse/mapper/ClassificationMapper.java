@@ -4,16 +4,14 @@ import com.java.companyhouse.model.dto.ClassificationDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
-
 @Mapper
 public interface ClassificationMapper {
 
     void upsertClassification(ClassificationDto dto);
 
-    void upsertPatentClassification(ClassificationDto dto);
+    void upsertPatentClassification(@Param("mergeKey") String mergeKey, @Param("patentMergeKey") String patentMergeKey, @Param("syncId") String syncId);
 
     void softDeleteAllPatentClassifications(@Param("patentMergeKey") String patentMergeKey);
 
-    void softDeleteMissingPatentClassifications(@Param("patentMergeKey") String patentMergeKey, @Param("mergeKeys") List<String> mergeKeys);
+    void softDeleteMissingPatentClassifications(@Param("patentMergeKey") String patentMergeKey, @Param("syncId") String syncId);
 }

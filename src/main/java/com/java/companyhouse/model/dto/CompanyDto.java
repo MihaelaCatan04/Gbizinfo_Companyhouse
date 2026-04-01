@@ -6,7 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CompanyDto {
-    private String runId;
     private String corporateNumber;
     private String name;
     private String kana;

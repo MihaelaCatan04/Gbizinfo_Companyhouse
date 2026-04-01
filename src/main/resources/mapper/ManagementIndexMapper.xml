@@ -136,15 +136,30 @@
     </update>
 
     <update id="upsertFinanceManagement">
-        INSERT INTO finance_management (finance_id, management_index_id, inserted_at, deleted)
-        SELECT f.finance_id, m.management_index_id, now(), false
+        INSERT INTO finance_management (
+            finance_id,
+            management_index_id,
+            inserted_at,
+            updated_at,
+            deleted,
+            sync_id
+        )
+        SELECT
+            f.finance_id,
+            m.management_index_id,
+            now(),
+            now(),
+            false,
+            #{syncId}::uuid
         FROM finance f
                  JOIN management_index m ON m.merge_key = #{mergeKey}
         WHERE f.merge_key = #{financeMergeKey}
         ON CONFLICT (finance_id, management_index_id) DO UPDATE SET
                                                                     deleted = false,
-                                                                    updated_at = now()
+                                                                    updated_at = now(),
+                                                                    sync_id = EXCLUDED.sync_id
         WHERE finance_management.deleted IS DISTINCT FROM false
+           OR finance_management.sync_id IS DISTINCT FROM EXCLUDED.sync_id
     </update>
 
     <update id="softDeleteAllFinanceManagementIndexes">
@@ -162,21 +177,14 @@
     <update id="softDeleteMissingFinanceManagementIndexes">
         UPDATE finance_management fm
         SET deleted = true,
-        updated_at = now()
+            updated_at = now()
         WHERE fm.deleted = false
-        AND fm.finance_id = (
-        SELECT f.finance_id
-        FROM finance f
-        WHERE f.merge_key = #{financeMergeKey}
+          AND fm.finance_id = (
+            SELECT f.finance_id
+            FROM finance f
+            WHERE f.merge_key = #{financeMergeKey}
         )
-        AND fm.management_index_id NOT IN (
-        SELECT mi.management_index_id
-        FROM management_index mi
-        WHERE mi.merge_key IN
-        <foreach item="key" collection="mergeKeys" open="(" separator="," close=")">
-            #{key}
-        </foreach>
-        )
+          AND fm.sync_id IS DISTINCT FROM #{syncId}::uuid
     </update>
 
 </mapper>

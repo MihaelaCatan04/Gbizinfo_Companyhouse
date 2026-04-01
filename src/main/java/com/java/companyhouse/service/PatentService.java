@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,18 +20,18 @@ public class PatentService extends AbstractBatchService<PatentDto> {
         String corporateNumber = snapshot.getCorporateNumber();
         List<PatentDto> patents = snapshot.getEntities();
 
-        for (PatentDto dto : patents) {
-            patentMapper.upsertPatent(dto);
-            patentMapper.upsertCompanyPatent(dto);
-        }
-
         if (patents.isEmpty()) {
             patentMapper.softDeleteAllCompanyPatents(corporateNumber);
             return;
         }
 
-        List<String> mergeKeys = patents.stream().map(PatentDto::getMergeKey).toList();
+        String syncId = UUID.randomUUID().toString();
 
-        patentMapper.softDeleteMissingCompanyPatents(corporateNumber, mergeKeys);
+        for (PatentDto dto : patents) {
+            patentMapper.upsertPatent(dto);
+            patentMapper.upsertCompanyPatent(dto, syncId);
+        }
+
+        patentMapper.softDeleteMissingCompanyPatents(corporateNumber, syncId);
     }
 }

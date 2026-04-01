@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,18 +20,18 @@ public class FinanceService extends AbstractBatchService<FinanceDto> {
         String corporateNumber = snapshot.getCorporateNumber();
         List<FinanceDto> finances = snapshot.getEntities();
 
-        for (FinanceDto dto : finances) {
-            financeMapper.upsertFinance(dto);
-            financeMapper.upsertCompanyFinance(dto);
-        }
-
         if (finances.isEmpty()) {
             financeMapper.softDeleteAllCompanyFinances(corporateNumber);
             return;
         }
 
-        List<String> mergeKeys = finances.stream().map(FinanceDto::getMergeKey).toList();
+        String syncId = UUID.randomUUID().toString();
 
-        financeMapper.softDeleteMissingCompanyFinances(corporateNumber, mergeKeys);
+        for (FinanceDto dto : finances) {
+            financeMapper.upsertFinance(dto);
+            financeMapper.upsertCompanyFinance(dto, syncId);
+        }
+
+        financeMapper.softDeleteMissingCompanyFinances(corporateNumber, syncId);
     }
 }

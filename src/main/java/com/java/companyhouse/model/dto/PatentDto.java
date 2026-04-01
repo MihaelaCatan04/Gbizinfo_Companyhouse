@@ -6,7 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PatentDto {
-    private String runId;
     private String corporateNumber;
     private String mergeKey;
     private String patentType;

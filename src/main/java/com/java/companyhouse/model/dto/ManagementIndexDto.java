@@ -6,7 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ManagementIndexDto {
-    private String runId;
     private String financeMergeKey;
     private String mergeKey;
     private String period;

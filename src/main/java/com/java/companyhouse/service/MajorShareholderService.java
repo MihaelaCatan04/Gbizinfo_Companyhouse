@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -34,26 +35,22 @@ public class MajorShareholderService {
         String financeMergeKey = snapshot.getFinanceMergeKey();
         List<MajorShareholderDto> shareholders = snapshot.getShareholders() == null ? Collections.emptyList() : snapshot.getShareholders();
 
-        for (MajorShareholderDto dto : shareholders) {
-            if (dto == null) {
-                continue;
-            }
-            majorShareholderMapper.upsertMajorShareholder(dto);
-            majorShareholderMapper.upsertFinanceShareholder(dto);
-        }
-
         if (shareholders.isEmpty()) {
             majorShareholderMapper.softDeleteAllFinanceShareholders(financeMergeKey);
             return;
         }
 
-        List<String> mergeKeys = shareholders.stream().filter(dto -> dto != null && dto.getMergeKey() != null).map(MajorShareholderDto::getMergeKey).toList();
+        String syncId = UUID.randomUUID().toString();
 
-        if (mergeKeys.isEmpty()) {
-            majorShareholderMapper.softDeleteAllFinanceShareholders(financeMergeKey);
-            return;
+        for (MajorShareholderDto dto : shareholders) {
+            if (dto == null || dto.getMergeKey() == null) {
+                continue;
+            }
+
+            majorShareholderMapper.upsertMajorShareholder(dto);
+            majorShareholderMapper.upsertFinanceShareholder(dto.getMergeKey(), financeMergeKey, syncId);
         }
 
-        majorShareholderMapper.softDeleteMissingFinanceShareholders(financeMergeKey, mergeKeys);
+        majorShareholderMapper.softDeleteMissingFinanceShareholders(financeMergeKey, syncId);
     }
 }

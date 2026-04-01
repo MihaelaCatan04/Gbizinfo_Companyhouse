@@ -33,15 +33,24 @@
     </update>
 
     <update id="upsertCompanyCommendation">
-        INSERT INTO company_commendation (company_id, commendation_id, inserted_at, deleted)
-        SELECT c.company_id, e.commendation_id, now(), false
+        INSERT INTO company_commendation (
+            company_id,
+            commendation_id,
+            inserted_at,
+            updated_at,
+            deleted,
+            sync_id
+        )
+        SELECT c.company_id, e.commendation_id, now(), now(), false, #{syncId}::uuid
         FROM company c
-                 JOIN commendation e ON e.merge_key = #{mergeKey}
-        WHERE c.corporate_number = #{corporateNumber}
+                 JOIN commendation e ON e.merge_key = #{dto.mergeKey}
+        WHERE c.corporate_number = #{dto.corporateNumber}
         ON CONFLICT (company_id, commendation_id) DO UPDATE SET
                                                                 deleted = false,
-                                                                updated_at = now()
+                                                                updated_at = now(),
+                                                                sync_id = EXCLUDED.sync_id
         WHERE company_commendation.deleted IS DISTINCT FROM false
+           OR company_commendation.sync_id IS DISTINCT FROM EXCLUDED.sync_id
     </update>
 
     <update id="softDeleteAllCompanyCommendations">
@@ -59,21 +68,14 @@
     <update id="softDeleteMissingCompanyCommendations">
         UPDATE company_commendation cc
         SET deleted = true,
-        updated_at = now()
+            updated_at = now()
         WHERE cc.deleted = false
-        AND cc.company_id = (
-        SELECT c.company_id
-        FROM company c
-        WHERE c.corporate_number = #{corporateNumber}
+          AND cc.company_id = (
+            SELECT c.company_id
+            FROM company c
+            WHERE c.corporate_number = #{corporateNumber}
         )
-        AND cc.commendation_id NOT IN (
-        SELECT co.commendation_id
-        FROM commendation co
-        WHERE co.merge_key IN
-        <foreach item="key" collection="mergeKeys" open="(" separator="," close=")">
-            #{key}
-        </foreach>
-        )
+          AND cc.sync_id IS DISTINCT FROM #{syncId}::uuid
     </update>
 
 </mapper>
