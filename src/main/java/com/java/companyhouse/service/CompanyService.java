@@ -1,26 +1,19 @@
 package com.java.companyhouse.service;
 
-import com.java.companyhouse.mapper.MergeMapper;
-import com.java.companyhouse.mapper.RunMapper;
+import com.java.companyhouse.mapper.CompanyMapper;
 import com.java.companyhouse.model.dto.CompanyDto;
+import com.java.companyhouse.model.receiver.CompanySnapshot;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CompanyService {
+public class CompanyService extends AbstractBatchService<CompanyDto> {
 
-    private final RunMapper runMapper;
-    private final MergeMapper mergeMapper;
+    private final CompanyMapper companyMapper;
 
-    @Transactional
-    public void receive(List<CompanyDto> companies) {
-        for (CompanyDto dto : companies) {
-            mergeMapper.upsertCompany(dto);
-            runMapper.insertRunCompany(dto.getRunId(), dto.getCorporateNumber());
-        }
+    @Override
+    protected void processSnapshot(CompanySnapshot<CompanyDto> snapshot) {
+        snapshot.getEntities().forEach(companyMapper::upsertCompany);
     }
 }

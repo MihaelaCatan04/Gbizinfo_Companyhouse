@@ -1,21 +1,19 @@
 package com.java.companyhouse.service;
 
-import com.java.companyhouse.mapper.MergeMapper;
+import com.java.companyhouse.mapper.BaseInfoMapper;
 import com.java.companyhouse.model.dto.BaseInfoDto;
+import com.java.companyhouse.model.receiver.CompanySnapshot;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class BaseInfoService {
+public class BaseInfoService extends AbstractBatchService<BaseInfoDto> {
 
-    private final MergeMapper mergeMapper;
+    private final BaseInfoMapper baseInfoMapper;
 
-    @Transactional
-    public void receive(List<BaseInfoDto> list) {
-        list.forEach(mergeMapper::upsertBaseInfo);
+    @Override
+    protected void processSnapshot(CompanySnapshot<BaseInfoDto> snapshot) {
+        snapshot.getEntities().forEach(baseInfoMapper::upsertBaseInfo);
     }
 }

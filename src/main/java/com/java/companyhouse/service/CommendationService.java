@@ -1,29 +1,36 @@
 package com.java.companyhouse.service;
 
-import com.java.companyhouse.mapper.MergeMapper;
-import com.java.companyhouse.mapper.RunMapper;
+import com.java.companyhouse.mapper.CommendationMapper;
 import com.java.companyhouse.model.dto.CommendationDto;
+import com.java.companyhouse.model.receiver.CompanySnapshot;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CommendationService {
+public class CommendationService extends AbstractBatchService<CommendationDto> {
 
-    private final MergeMapper mergeMapper;
-    private final RunMapper runMapper;
+    private final CommendationMapper commendationMapper;
 
-    @Transactional
-    public void receive(List<CommendationDto> list) {
-        for (CommendationDto dto : list) {
-            mergeMapper.upsertCommendation(dto);
-            mergeMapper.upsertCompanyCommendation(dto);
-            runMapper.insertRunCommendation(
-                    dto.getRunId(), dto.getCorporateNumber(), dto.getMergeKey());
-            runMapper.insertRunCompany(dto.getRunId(), dto.getCorporateNumber());
+    @Override
+    protected void processSnapshot(CompanySnapshot<CommendationDto> snapshot) {
+        String corporateNumber = snapshot.getCorporateNumber();
+        List<CommendationDto> commendations = snapshot.getEntities();
+
+        for (CommendationDto dto : commendations) {
+            commendationMapper.upsertCommendation(dto);
+            commendationMapper.upsertCompanyCommendation(dto);
         }
+
+        if (commendations.isEmpty()) {
+            commendationMapper.softDeleteAllCompanyCommendations(corporateNumber);
+            return;
+        }
+
+        List<String> mergeKeys = commendations.stream().map(CommendationDto::getMergeKey).toList();
+
+        commendationMapper.softDeleteMissingCompanyCommendations(corporateNumber, mergeKeys);
     }
 }

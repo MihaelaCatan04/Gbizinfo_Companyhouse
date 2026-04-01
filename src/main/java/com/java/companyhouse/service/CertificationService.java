@@ -1,29 +1,36 @@
 package com.java.companyhouse.service;
 
-import com.java.companyhouse.mapper.MergeMapper;
-import com.java.companyhouse.mapper.RunMapper;
+import com.java.companyhouse.mapper.CertificationMapper;
 import com.java.companyhouse.model.dto.CertificationDto;
+import com.java.companyhouse.model.receiver.CompanySnapshot;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CertificationService {
+public class CertificationService extends AbstractBatchService<CertificationDto> {
 
-    private final MergeMapper mergeMapper;
-    private final RunMapper runMapper;
+    private final CertificationMapper certificationMapper;
 
-    @Transactional
-    public void receive(List<CertificationDto> list) {
-        for (CertificationDto dto : list) {
-            mergeMapper.upsertCertification(dto);
-            mergeMapper.upsertCompanyCertification(dto);
-            runMapper.insertRunCertification(
-                    dto.getRunId(), dto.getCorporateNumber(), dto.getMergeKey());
-            runMapper.insertRunCompany(dto.getRunId(), dto.getCorporateNumber());
+    @Override
+    protected void processSnapshot(CompanySnapshot<CertificationDto> snapshot) {
+        String corporateNumber = snapshot.getCorporateNumber();
+        List<CertificationDto> certifications = snapshot.getEntities();
+
+        for (CertificationDto dto : certifications) {
+            certificationMapper.upsertCertification(dto);
+            certificationMapper.upsertCompanyCertification(dto);
         }
+
+        if (certifications.isEmpty()) {
+            certificationMapper.softDeleteAllCompanyCertifications(corporateNumber);
+            return;
+        }
+
+        List<String> mergeKeys = certifications.stream().map(CertificationDto::getMergeKey).toList();
+
+        certificationMapper.softDeleteMissingCompanyCertifications(corporateNumber, mergeKeys);
     }
 }

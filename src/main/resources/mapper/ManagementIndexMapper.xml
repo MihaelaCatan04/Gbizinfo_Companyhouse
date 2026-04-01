@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.java.companyhouse.mapper.ManagementIndexMapper">
+
+    <update id="upsertManagementIndex">
+        INSERT INTO management_index (merge_key, period,
+                                      net_sales_summary_of_business_results,
+                                      net_sales_summary_of_business_results_unit_ref,
+                                      operating_revenue1_summary_of_business_results,
+                                      operating_revenue1_summary_of_business_results_unit_ref,
+                                      operating_revenue2_summary_of_business_results,
+                                      operating_revenue2_summary_of_business_results_unit_ref,
+                                      gross_operating_revenue_summary_of_business_results,
+                                      gross_operating_revenue_summary_of_business_results_unit_ref,
+                                      ordinary_income_summary_of_business_results,
+                                      ordinary_income_summary_of_business_results_unit_ref,
+                                      net_premiums_written_summary_of_business_results_ins,
+                                      net_premiums_written_summary_of_business_results_ins_unit_ref,
+                                      ordinary_income_loss_summary_of_business_results,
+                                      ordinary_income_loss_summary_of_business_results_unit_ref,
+                                      net_income_loss_summary_of_business_results,
+                                      net_income_loss_summary_of_business_results_unit_ref,
+                                      capital_stock_summary_of_business_results,
+                                      capital_stock_summary_of_business_results_unit_ref,
+                                      net_assets_summary_of_business_results,
+                                      net_assets_summary_of_business_results_unit_ref,
+                                      total_assets_summary_of_business_results,
+                                      total_assets_summary_of_business_results_unit_ref,
+                                      number_of_employees,
+                                      number_of_employees_unit_ref)
+        VALUES (#{mergeKey}, #{period}::integer,
+                #{netSalesSummaryOfBusinessResults},
+                #{netSalesSummaryOfBusinessResultsUnitRef},
+                #{operatingRevenue1SummaryOfBusinessResults},
+                #{operatingRevenue1SummaryOfBusinessResultsUnitRef},
+                #{operatingRevenue2SummaryOfBusinessResults},
+                #{operatingRevenue2SummaryOfBusinessResultsUnitRef},
+                #{grossOperatingRevenueSummaryOfBusinessResults},
+                #{grossOperatingRevenueSummaryOfBusinessResultsUnitRef},
+                #{ordinaryIncomeSummaryOfBusinessResults},
+                #{ordinaryIncomeSummaryOfBusinessResultsUnitRef},
+                #{netPremiumsWrittenSummaryOfBusinessResultIns},
+                #{netPremiumsWrittenSummaryOfBusinessResultsInsUnitRef},
+                #{ordinaryIncomeLossSummaryOfBusinessResults},
+                #{ordinaryIncomeLossSummaryOfBusinessResultsUnitRef},
+                #{netIncomeLossSummaryOfBusinessResults},
+                #{netIncomeLossSummaryOfBusinessResultsUnitRef},
+                #{capitalStockSummaryOfBusinessResults},
+                #{capitalStockSummaryOfBusinessResultsUnitRef},
+                #{netAssetsSummaryOfBusinessResults},
+                #{netAssetsSummaryOfBusinessResultsUnitRef},
+                #{totalAssetsSummaryOfBusinessResults},
+                #{totalAssetsSummaryOfBusinessResultsUnitRef},
+                #{numberOfEmployees},
+                #{numberOfEmployeesUnitRef})
+        ON CONFLICT (merge_key) DO UPDATE SET period                                                        = EXCLUDED.period,
+                                              net_sales_summary_of_business_results                         = EXCLUDED.net_sales_summary_of_business_results,
+                                              net_sales_summary_of_business_results_unit_ref                = EXCLUDED.net_sales_summary_of_business_results_unit_ref,
+                                              operating_revenue1_summary_of_business_results                = EXCLUDED.operating_revenue1_summary_of_business_results,
+                                              operating_revenue1_summary_of_business_results_unit_ref       = EXCLUDED.operating_revenue1_summary_of_business_results_unit_ref,
+                                              operating_revenue2_summary_of_business_results                = EXCLUDED.operating_revenue2_summary_of_business_results,
+                                              operating_revenue2_summary_of_business_results_unit_ref       = EXCLUDED.operating_revenue2_summary_of_business_results_unit_ref,
+                                              gross_operating_revenue_summary_of_business_results           = EXCLUDED.gross_operating_revenue_summary_of_business_results,
+                                              gross_operating_revenue_summary_of_business_results_unit_ref  = EXCLUDED.gross_operating_revenue_summary_of_business_results_unit_ref,
+                                              ordinary_income_summary_of_business_results                   = EXCLUDED.ordinary_income_summary_of_business_results,
+                                              ordinary_income_summary_of_business_results_unit_ref          = EXCLUDED.ordinary_income_summary_of_business_results_unit_ref,
+                                              net_premiums_written_summary_of_business_results_ins          = EXCLUDED.net_premiums_written_summary_of_business_results_ins,
+                                              net_premiums_written_summary_of_business_results_ins_unit_ref = EXCLUDED.net_premiums_written_summary_of_business_results_ins_unit_ref,
+                                              ordinary_income_loss_summary_of_business_results              = EXCLUDED.ordinary_income_loss_summary_of_business_results,
+                                              ordinary_income_loss_summary_of_business_results_unit_ref     = EXCLUDED.ordinary_income_loss_summary_of_business_results_unit_ref,
+                                              net_income_loss_summary_of_business_results                   = EXCLUDED.net_income_loss_summary_of_business_results,
+                                              net_income_loss_summary_of_business_results_unit_ref          = EXCLUDED.net_income_loss_summary_of_business_results_unit_ref,
+                                              capital_stock_summary_of_business_results                     = EXCLUDED.capital_stock_summary_of_business_results,
+                                              capital_stock_summary_of_business_results_unit_ref            = EXCLUDED.capital_stock_summary_of_business_results_unit_ref,
+                                              net_assets_summary_of_business_results                        = EXCLUDED.net_assets_summary_of_business_results,
+                                              net_assets_summary_of_business_results_unit_ref               = EXCLUDED.net_assets_summary_of_business_results_unit_ref,
+                                              total_assets_summary_of_business_results                      = EXCLUDED.total_assets_summary_of_business_results,
+                                              total_assets_summary_of_business_results_unit_ref             = EXCLUDED.total_assets_summary_of_business_results_unit_ref,
+                                              number_of_employees                                           = EXCLUDED.number_of_employees,
+                                              number_of_employees_unit_ref                                  = EXCLUDED.number_of_employees_unit_ref
+        WHERE (
+               management_index.period,
+               management_index.net_sales_summary_of_business_results,
+               management_index.net_sales_summary_of_business_results_unit_ref,
+               management_index.operating_revenue1_summary_of_business_results,
+               management_index.operating_revenue1_summary_of_business_results_unit_ref,
+               management_index.operating_revenue2_summary_of_business_results,
+               management_index.operating_revenue2_summary_of_business_results_unit_ref,
+               management_index.gross_operating_revenue_summary_of_business_results,
+               management_index.gross_operating_revenue_summary_of_business_results_unit_ref,
+               management_index.ordinary_income_summary_of_business_results,
+               management_index.ordinary_income_summary_of_business_results_unit_ref,
+               management_index.net_premiums_written_summary_of_business_results_ins,
+               management_index.net_premiums_written_summary_of_business_results_ins_unit_ref,
+               management_index.ordinary_income_loss_summary_of_business_results,
+               management_index.ordinary_income_loss_summary_of_business_results_unit_ref,
+               management_index.net_income_loss_summary_of_business_results,
+               management_index.net_income_loss_summary_of_business_results_unit_ref,
+               management_index.capital_stock_summary_of_business_results,
+               management_index.capital_stock_summary_of_business_results_unit_ref,
+               management_index.net_assets_summary_of_business_results,
+               management_index.net_assets_summary_of_business_results_unit_ref,
+               management_index.total_assets_summary_of_business_results,
+               management_index.total_assets_summary_of_business_results_unit_ref,
+               management_index.number_of_employees,
+               management_index.number_of_employees_unit_ref
+                  ) IS DISTINCT FROM (
+                                      EXCLUDED.period,
+                                      EXCLUDED.net_sales_summary_of_business_results,
+                                      EXCLUDED.net_sales_summary_of_business_results_unit_ref,
+                                      EXCLUDED.operating_revenue1_summary_of_business_results,
+                                      EXCLUDED.operating_revenue1_summary_of_business_results_unit_ref,
+                                      EXCLUDED.operating_revenue2_summary_of_business_results,
+                                      EXCLUDED.operating_revenue2_summary_of_business_results_unit_ref,
+                                      EXCLUDED.gross_operating_revenue_summary_of_business_results,
+                                      EXCLUDED.gross_operating_revenue_summary_of_business_results_unit_ref,
+                                      EXCLUDED.ordinary_income_summary_of_business_results,
+                                      EXCLUDED.ordinary_income_summary_of_business_results_unit_ref,
+                                      EXCLUDED.net_premiums_written_summary_of_business_results_ins,
+                                      EXCLUDED.net_premiums_written_summary_of_business_results_ins_unit_ref,
+                                      EXCLUDED.ordinary_income_loss_summary_of_business_results,
+                                      EXCLUDED.ordinary_income_loss_summary_of_business_results_unit_ref,
+                                      EXCLUDED.net_income_loss_summary_of_business_results,
+                                      EXCLUDED.net_income_loss_summary_of_business_results_unit_ref,
+                                      EXCLUDED.capital_stock_summary_of_business_results,
+                                      EXCLUDED.capital_stock_summary_of_business_results_unit_ref,
+                                      EXCLUDED.net_assets_summary_of_business_results,
+                                      EXCLUDED.net_assets_summary_of_business_results_unit_ref,
+                                      EXCLUDED.total_assets_summary_of_business_results,
+                                      EXCLUDED.total_assets_summary_of_business_results_unit_ref,
+                                      EXCLUDED.number_of_employees,
+                                      EXCLUDED.number_of_employees_unit_ref
+            )
+    </update>
+
+    <update id="upsertFinanceManagement">
+        INSERT INTO finance_management (finance_id, management_index_id, inserted_at, deleted)
+        SELECT f.finance_id, m.management_index_id, now(), false
+        FROM finance f
+                 JOIN management_index m ON m.merge_key = #{mergeKey}
+        WHERE f.merge_key = #{financeMergeKey}
+        ON CONFLICT (finance_id, management_index_id) DO UPDATE SET
+                                                                    deleted = false,
+                                                                    updated_at = now()
+        WHERE finance_management.deleted IS DISTINCT FROM false
+    </update>
+
+    <update id="softDeleteAllFinanceManagementIndexes">
+        UPDATE finance_management fm
+        SET deleted = true,
+            updated_at = now()
+        WHERE fm.deleted = false
+          AND fm.finance_id = (
+            SELECT f.finance_id
+            FROM finance f
+            WHERE f.merge_key = #{financeMergeKey}
+        )
+    </update>
+
+    <update id="softDeleteMissingFinanceManagementIndexes">
+        UPDATE finance_management fm
+        SET deleted = true,
+        updated_at = now()
+        WHERE fm.deleted = false
+        AND fm.finance_id = (
+        SELECT f.finance_id
+        FROM finance f
+        WHERE f.merge_key = #{financeMergeKey}
+        )
+        AND fm.management_index_id NOT IN (
+        SELECT mi.management_index_id
+        FROM management_index mi
+        WHERE mi.merge_key IN
+        <foreach item="key" collection="mergeKeys" open="(" separator="," close=")">
+            #{key}
+        </foreach>
+        )
+    </update>
+
+</mapper>

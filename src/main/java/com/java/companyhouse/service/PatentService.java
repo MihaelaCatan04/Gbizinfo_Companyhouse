@@ -1,28 +1,36 @@
 package com.java.companyhouse.service;
 
-import com.java.companyhouse.mapper.MergeMapper;
-import com.java.companyhouse.mapper.RunMapper;
+import com.java.companyhouse.mapper.PatentMapper;
 import com.java.companyhouse.model.dto.PatentDto;
+import com.java.companyhouse.model.receiver.CompanySnapshot;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PatentService {
+public class PatentService extends AbstractBatchService<PatentDto> {
 
-    private final MergeMapper mergeMapper;
-    private final RunMapper runMapper;
+    private final PatentMapper patentMapper;
 
-    @Transactional
-    public void receive(List<PatentDto> list) {
-        for (PatentDto dto : list) {
-            mergeMapper.upsertPatent(dto);
-            mergeMapper.upsertCompanyPatent(dto);
-            runMapper.insertRunPatent(dto.getRunId(), dto.getMergeKey());
-            runMapper.insertRunCompany(dto.getRunId(), dto.getCorporateNumber());
+    @Override
+    protected void processSnapshot(CompanySnapshot<PatentDto> snapshot) {
+        String corporateNumber = snapshot.getCorporateNumber();
+        List<PatentDto> patents = snapshot.getEntities();
+
+        for (PatentDto dto : patents) {
+            patentMapper.upsertPatent(dto);
+            patentMapper.upsertCompanyPatent(dto);
         }
+
+        if (patents.isEmpty()) {
+            patentMapper.softDeleteAllCompanyPatents(corporateNumber);
+            return;
+        }
+
+        List<String> mergeKeys = patents.stream().map(PatentDto::getMergeKey).toList();
+
+        patentMapper.softDeleteMissingCompanyPatents(corporateNumber, mergeKeys);
     }
 }

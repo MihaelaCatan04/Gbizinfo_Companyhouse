@@ -1,21 +1,19 @@
 package com.java.companyhouse.service;
 
-import com.java.companyhouse.mapper.MergeMapper;
+import com.java.companyhouse.mapper.CompatibilityMapper;
 import com.java.companyhouse.model.dto.CompatibilityOfChildcareAndWorkDto;
+import com.java.companyhouse.model.receiver.CompanySnapshot;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CompatibilityService {
+public class CompatibilityService extends AbstractBatchService<CompatibilityOfChildcareAndWorkDto> {
 
-    private final MergeMapper mergeMapper;
+    private final CompatibilityMapper compatibilityMapper;
 
-    @Transactional
-    public void receive(List<CompatibilityOfChildcareAndWorkDto> list) {
-        list.forEach(mergeMapper::upsertCompatibility);
+    @Override
+    protected void processSnapshot(CompanySnapshot<CompatibilityOfChildcareAndWorkDto> snapshot) {
+        snapshot.getEntities().forEach(compatibilityMapper::upsertCompatibility);
     }
 }

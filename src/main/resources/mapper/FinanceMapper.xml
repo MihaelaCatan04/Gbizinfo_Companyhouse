@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.java.companyhouse.mapper.FinanceMapper">
+
+    <update id="upsertFinance">
+        INSERT INTO finance (merge_key, accounting_standards, fiscal_year_cover_page)
+        VALUES (#{mergeKey}, #{accountingStandards}, #{fiscalYearCoverPage})
+        ON CONFLICT (merge_key) DO UPDATE SET accounting_standards   = EXCLUDED.accounting_standards,
+                                              fiscal_year_cover_page = EXCLUDED.fiscal_year_cover_page
+        WHERE (
+               finance.accounting_standards,
+               finance.fiscal_year_cover_page
+                  ) IS DISTINCT FROM (
+                                      EXCLUDED.accounting_standards,
+                                      EXCLUDED.fiscal_year_cover_page
+            )
+    </update>
+
+    <update id="upsertCompanyFinance">
+        INSERT INTO company_finance (company_id, finance_id, inserted_at, deleted)
+        SELECT c.company_id, f.finance_id, now(), false
+        FROM company c
+                 JOIN finance f ON f.merge_key = #{mergeKey}
+        WHERE c.corporate_number = #{corporateNumber}
+        ON CONFLICT (company_id, finance_id) DO UPDATE SET
+                                                           deleted = false,
+                                                           updated_at = now()
+        WHERE company_finance.deleted IS DISTINCT FROM false
+    </update>
+
+    <update id="softDeleteAllCompanyFinances">
+        UPDATE company_finance cf
+        SET deleted = true,
+            updated_at = now()
+        WHERE cf.deleted = false
+          AND cf.company_id = (
+            SELECT c.company_id
+            FROM company c
+            WHERE c.corporate_number = #{corporateNumber}
+        )
+    </update>
+
+    <update id="softDeleteMissingCompanyFinances">
+        UPDATE company_finance cf
+        SET deleted = true,
+        updated_at = now()
+        WHERE cf.deleted = false
+        AND cf.company_id = (
+        SELECT c.company_id
+        FROM company c
+        WHERE c.corporate_number = #{corporateNumber}
+        )
+        AND cf.finance_id NOT IN (
+        SELECT f.finance_id
+        FROM finance f
+        WHERE f.merge_key IN
+        <foreach item="key" collection="mergeKeys" open="(" separator="," close=")">
+            #{key}
+        </foreach>
+        )
+    </update>
+
+</mapper>

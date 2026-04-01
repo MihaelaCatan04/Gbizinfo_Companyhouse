@@ -1,29 +1,36 @@
 package com.java.companyhouse.service;
 
-import com.java.companyhouse.mapper.MergeMapper;
-import com.java.companyhouse.mapper.RunMapper;
+import com.java.companyhouse.mapper.FinanceMapper;
 import com.java.companyhouse.model.dto.FinanceDto;
+import com.java.companyhouse.model.receiver.CompanySnapshot;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class FinanceService {
+public class FinanceService extends AbstractBatchService<FinanceDto> {
 
-    private final MergeMapper mergeMapper;
-    private final RunMapper runMapper;
+    private final FinanceMapper financeMapper;
 
-    @Transactional
-    public void receive(List<FinanceDto> list) {
-        for (FinanceDto dto : list) {
-            mergeMapper.upsertFinance(dto);
-            mergeMapper.upsertCompanyFinance(dto);
-            runMapper.insertRunFinance(
-                    dto.getRunId(), dto.getCorporateNumber(), dto.getMergeKey());
-            runMapper.insertRunCompany(dto.getRunId(), dto.getCorporateNumber());
+    @Override
+    protected void processSnapshot(CompanySnapshot<FinanceDto> snapshot) {
+        String corporateNumber = snapshot.getCorporateNumber();
+        List<FinanceDto> finances = snapshot.getEntities();
+
+        for (FinanceDto dto : finances) {
+            financeMapper.upsertFinance(dto);
+            financeMapper.upsertCompanyFinance(dto);
         }
+
+        if (finances.isEmpty()) {
+            financeMapper.softDeleteAllCompanyFinances(corporateNumber);
+            return;
+        }
+
+        List<String> mergeKeys = finances.stream().map(FinanceDto::getMergeKey).toList();
+
+        financeMapper.softDeleteMissingCompanyFinances(corporateNumber, mergeKeys);
     }
 }

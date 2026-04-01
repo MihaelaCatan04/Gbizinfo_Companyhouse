@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.java.companyhouse.mapper.ItemInfoMapper">
+
+    <update id="upsertItemInfo">
+        INSERT INTO item_info (merge_key, value, is_industry, deleted)
+        VALUES (#{mergeKey}, #{value}, #{isIndustry}, false)
+        ON CONFLICT (merge_key) DO UPDATE SET value       = EXCLUDED.value,
+                                              is_industry = EXCLUDED.is_industry,
+                                              deleted     = false
+        WHERE (
+               item_info.value,
+               item_info.is_industry,
+               item_info.deleted
+                  ) IS DISTINCT FROM (
+                                      EXCLUDED.value,
+                                      EXCLUDED.is_industry,
+                                      false
+            )
+    </update>
+
+    <update id="upsertCompanyItem">
+        INSERT INTO company_item (company_id, info_id, inserted_at, deleted)
+        SELECT c.company_id, i.info_id, now(), false
+        FROM company c
+                 JOIN item_info i ON i.merge_key = #{mergeKey}
+        WHERE c.corporate_number = #{corporateNumber}
+        ON CONFLICT (company_id, info_id) DO UPDATE SET
+                                                        deleted = false,
+                                                        updated_at = now()
+        WHERE company_item.deleted IS DISTINCT FROM false
+    </update>
+
+    <update id="softDeleteAllCompanyItems">
+        UPDATE company_item ci
+        SET deleted = true,
+            updated_at = now()
+        WHERE ci.deleted = false
+          AND ci.company_id = (
+            SELECT c.company_id
+            FROM company c
+            WHERE c.corporate_number = #{corporateNumber}
+        )
+    </update>
+
+    <update id="softDeleteMissingCompanyItems">
+        UPDATE company_item ci
+        SET deleted = true,
+        updated_at = now()
+        WHERE ci.deleted = false
+        AND ci.company_id = (
+        SELECT c.company_id
+        FROM company c
+        WHERE c.corporate_number = #{corporateNumber}
+        )
+        AND ci.info_id NOT IN (
+        SELECT i.info_id
+        FROM item_info i
+        WHERE i.merge_key IN
+        <foreach item="key" collection="mergeKeys" open="(" separator="," close=")">
+            #{key}
+        </foreach>
+        )
+    </update>
+
+</mapper>

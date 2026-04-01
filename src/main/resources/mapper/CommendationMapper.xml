@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.java.companyhouse.mapper.CommendationMapper">
+
+    <update id="upsertCommendation">
+        INSERT INTO commendation (merge_key, date_of_commendation, title, target,
+                                  category, government_departments, note)
+        VALUES (#{mergeKey}, #{dateOfCommendation}::date, #{title}, #{target},
+                #{category}, #{governmentDepartments}, #{note})
+        ON CONFLICT (merge_key) DO UPDATE SET date_of_commendation   = EXCLUDED.date_of_commendation,
+                                              title                  = EXCLUDED.title,
+                                              target                 = EXCLUDED.target,
+                                              category               = EXCLUDED.category,
+                                              government_departments = EXCLUDED.government_departments,
+                                              note                   = EXCLUDED.note
+        WHERE (
+               commendation.date_of_commendation,
+               commendation.title,
+               commendation.target,
+               commendation.category,
+               commendation.government_departments,
+               commendation.note
+                  ) IS DISTINCT FROM (
+                                      EXCLUDED.date_of_commendation,
+                                      EXCLUDED.title,
+                                      EXCLUDED.target,
+                                      EXCLUDED.category,
+                                      EXCLUDED.government_departments,
+                                      EXCLUDED.note
+            )
+    </update>
+
+    <update id="upsertCompanyCommendation">
+        INSERT INTO company_commendation (company_id, commendation_id, inserted_at, deleted)
+        SELECT c.company_id, e.commendation_id, now(), false
+        FROM company c
+                 JOIN commendation e ON e.merge_key = #{mergeKey}
+        WHERE c.corporate_number = #{corporateNumber}
+        ON CONFLICT (company_id, commendation_id) DO UPDATE SET
+                                                                deleted = false,
+                                                                updated_at = now()
+        WHERE company_commendation.deleted IS DISTINCT FROM false
+    </update>
+
+    <update id="softDeleteAllCompanyCommendations">
+        UPDATE company_commendation cc
+        SET deleted = true,
+            updated_at = now()
+        WHERE cc.deleted = false
+          AND cc.company_id = (
+            SELECT c.company_id
+            FROM company c
+            WHERE c.corporate_number = #{corporateNumber}
+        )
+    </update>
+
+    <update id="softDeleteMissingCompanyCommendations">
+        UPDATE company_commendation cc
+        SET deleted = true,
+        updated_at = now()
+        WHERE cc.deleted = false
+        AND cc.company_id = (
+        SELECT c.company_id
+        FROM company c
+        WHERE c.corporate_number = #{corporateNumber}
+        )
+        AND cc.commendation_id NOT IN (
+        SELECT co.commendation_id
+        FROM commendation co
+        WHERE co.merge_key IN
+        <foreach item="key" collection="mergeKeys" open="(" separator="," close=")">
+            #{key}
+        </foreach>
+        )
+    </update>
+
+</mapper>

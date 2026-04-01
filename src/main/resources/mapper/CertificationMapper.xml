@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.java.companyhouse.mapper.CertificationMapper">
+
+    <update id="upsertCertification">
+        INSERT INTO certification (merge_key, date_of_approval, title, target,
+                                   government_departments, category)
+        VALUES (#{mergeKey}, #{dateOfApproval}::date, #{title}, #{target},
+                #{governmentDepartments}, #{category})
+        ON CONFLICT (merge_key) DO UPDATE SET date_of_approval       = EXCLUDED.date_of_approval,
+                                              title                  = EXCLUDED.title,
+                                              target                 = EXCLUDED.target,
+                                              government_departments = EXCLUDED.government_departments,
+                                              category               = EXCLUDED.category
+        WHERE (
+               certification.date_of_approval,
+               certification.title,
+               certification.target,
+               certification.government_departments,
+               certification.category
+                  ) IS DISTINCT FROM (
+                                      EXCLUDED.date_of_approval,
+                                      EXCLUDED.title,
+                                      EXCLUDED.target,
+                                      EXCLUDED.government_departments,
+                                      EXCLUDED.category
+            )
+    </update>
+
+    <update id="upsertCompanyCertification">
+        INSERT INTO company_certification (company_id, certification_id, inserted_at, deleted)
+        SELECT c.company_id, e.certification_id, now(), false
+        FROM company c
+                 JOIN certification e ON e.merge_key = #{mergeKey}
+        WHERE c.corporate_number = #{corporateNumber}
+        ON CONFLICT (company_id, certification_id) DO UPDATE SET
+                                                                 deleted = false,
+                                                                 updated_at = now()
+        WHERE company_certification.deleted IS NOT false
+    </update>
+
+    <update id="softDeleteAllCompanyCertifications">
+        UPDATE company_certification cc
+        SET deleted = true,
+            updated_at = now()
+        WHERE cc.deleted = false
+          AND cc.company_id = (
+            SELECT c.company_id
+            FROM company c
+            WHERE c.corporate_number = #{corporateNumber}
+        )
+    </update>
+
+    <update id="softDeleteMissingCompanyCertifications">
+        UPDATE company_certification cc
+        SET deleted = true,
+        updated_at = now()
+        WHERE cc.deleted = false
+        AND cc.company_id = (
+        SELECT c.company_id
+        FROM company c
+        WHERE c.corporate_number = #{corporateNumber}
+        )
+        AND cc.certification_id NOT IN (
+        SELECT ce.certification_id
+        FROM certification ce
+        WHERE ce.merge_key IN
+        <foreach item="key" collection="mergeKeys" open="(" separator="," close=")">
+            #{key}
+        </foreach>
+        )
+    </update>
+
+</mapper>

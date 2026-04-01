@@ -1,29 +1,36 @@
 package com.java.companyhouse.service;
 
-import com.java.companyhouse.mapper.MergeMapper;
-import com.java.companyhouse.mapper.RunMapper;
+import com.java.companyhouse.mapper.ItemInfoMapper;
 import com.java.companyhouse.model.dto.ItemInfoDto;
+import com.java.companyhouse.model.receiver.CompanySnapshot;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ItemInfoService {
+public class ItemInfoService extends AbstractBatchService<ItemInfoDto> {
 
-    private final MergeMapper mergeMapper;
-    private final RunMapper runMapper;
+    private final ItemInfoMapper itemInfoMapper;
 
-    @Transactional
-    public void receive(List<ItemInfoDto> list) {
-        for (ItemInfoDto dto : list) {
-            mergeMapper.upsertItemInfo(dto);
-            mergeMapper.upsertCompanyItem(dto);
-            runMapper.insertRunCompanyItem(
-                    dto.getRunId(), dto.getCorporateNumber(), dto.getMergeKey());
-            runMapper.insertRunCompany(dto.getRunId(), dto.getCorporateNumber());
+    @Override
+    protected void processSnapshot(CompanySnapshot<ItemInfoDto> snapshot) {
+        String corporateNumber = snapshot.getCorporateNumber();
+        List<ItemInfoDto> itemInfos = snapshot.getEntities();
+
+        for (ItemInfoDto dto : itemInfos) {
+            itemInfoMapper.upsertItemInfo(dto);
+            itemInfoMapper.upsertCompanyItem(dto);
         }
+
+        if (itemInfos.isEmpty()) {
+            itemInfoMapper.softDeleteAllCompanyItems(corporateNumber);
+            return;
+        }
+
+        List<String> mergeKeys = itemInfos.stream().map(ItemInfoDto::getMergeKey).toList();
+
+        itemInfoMapper.softDeleteMissingCompanyItems(corporateNumber, mergeKeys);
     }
 }

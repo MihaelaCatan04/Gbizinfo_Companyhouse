@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.java.companyhouse.mapper.MajorShareholderMapper">
+
+    <update id="upsertMajorShareholder">
+        INSERT INTO major_shareholder (merge_key, name_major_stakeholders, shareholding_ratio)
+        VALUES (#{mergeKey}, #{nameMajorShareholders}, #{shareholdingRatio})
+        ON CONFLICT (merge_key) DO UPDATE SET name_major_stakeholders = EXCLUDED.name_major_stakeholders,
+                                              shareholding_ratio      = EXCLUDED.shareholding_ratio
+        WHERE (
+               major_shareholder.name_major_stakeholders,
+               major_shareholder.shareholding_ratio
+                  ) IS DISTINCT FROM (
+                                      EXCLUDED.name_major_stakeholders,
+                                      EXCLUDED.shareholding_ratio
+            )
+    </update>
+
+    <update id="upsertFinanceShareholder">
+        INSERT INTO finance_shareholder (finance_id, major_shareholder_id, inserted_at, deleted)
+        SELECT f.finance_id, ms.major_shareholder_id, now(), false
+        FROM finance f
+                 JOIN major_shareholder ms ON ms.merge_key = #{mergeKey}
+        WHERE f.merge_key = #{financeMergeKey}
+        ON CONFLICT (finance_id, major_shareholder_id) DO UPDATE SET deleted    = false,
+                                                                     updated_at = now()
+        WHERE finance_shareholder.deleted IS DISTINCT FROM false
+    </update>
+
+    <update id="softDeleteAllFinanceShareholders">
+        UPDATE finance_shareholder fs
+        SET deleted    = true,
+            updated_at = now()
+        WHERE fs.deleted = false
+          AND fs.finance_id = (SELECT f.finance_id
+                               FROM finance f
+                               WHERE f.merge_key = #{financeMergeKey})
+    </update>
+
+    <update id="softDeleteMissingFinanceShareholders">
+        UPDATE finance_shareholder fs
+        SET deleted = true,
+        updated_at = now()
+        WHERE fs.deleted = false
+        AND fs.finance_id = (
+        SELECT f.finance_id
+        FROM finance f
+        WHERE f.merge_key = #{financeMergeKey}
+        )
+        AND fs.major_shareholder_id NOT IN (
+        SELECT ms.major_shareholder_id
+        FROM major_shareholder ms
+        WHERE ms.merge_key IN
+        <foreach item="key" collection="mergeKeys" open="(" separator="," close=")">
+            #{key}
+        </foreach>
+        )
+    </update>
+
+</mapper>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.java.companyhouse.mapper.SubsidyMapper">
+
+    <update id="upsertSubsidy">
+        INSERT INTO subsidy (merge_key, date_of_approval, title, amount,
+                             target, government_departments)
+        VALUES (#{mergeKey}, #{dateOfApproval}::date, #{title}, #{amount}::bigint,
+                #{target}, #{governmentDepartments})
+        ON CONFLICT (merge_key) DO UPDATE SET date_of_approval       = EXCLUDED.date_of_approval,
+                                              title                  = EXCLUDED.title,
+                                              amount                 = EXCLUDED.amount,
+                                              target                 = EXCLUDED.target,
+                                              government_departments = EXCLUDED.government_departments
+        WHERE (
+               subsidy.date_of_approval,
+               subsidy.title,
+               subsidy.amount,
+               subsidy.target,
+               subsidy.government_departments
+                  ) IS DISTINCT FROM (
+                                      EXCLUDED.date_of_approval,
+                                      EXCLUDED.title,
+                                      EXCLUDED.amount,
+                                      EXCLUDED.target,
+                                      EXCLUDED.government_departments
+            )
+    </update>
+
+    <update id="upsertCompanySubsidy">
+        INSERT INTO company_subsidy (company_id, subsidy_id, inserted_at, deleted)
+        SELECT c.company_id, s.subsidy_id, now(), false
+        FROM company c
+                 JOIN subsidy s ON s.merge_key = #{mergeKey}
+        WHERE c.corporate_number = #{corporateNumber}
+        ON CONFLICT (company_id, subsidy_id) DO UPDATE SET
+                                                           deleted = false,
+                                                           updated_at = now()
+        WHERE company_subsidy.deleted IS DISTINCT FROM false
+    </update>
+
+    <update id="softDeleteAllCompanySubsidies">
+        UPDATE company_subsidy cs
+        SET deleted = true,
+            updated_at = now()
+        WHERE cs.deleted = false
+          AND cs.company_id = (
+            SELECT c.company_id
+            FROM company c
+            WHERE c.corporate_number = #{corporateNumber}
+        )
+    </update>
+
+    <update id="softDeleteMissingCompanySubsidies">
+        UPDATE company_subsidy cs
+        SET deleted = true,
+        updated_at = now()
+        WHERE cs.deleted = false
+        AND cs.company_id = (
+        SELECT c.company_id
+        FROM company c
+        WHERE c.corporate_number = #{corporateNumber}
+        )
+        AND cs.subsidy_id NOT IN (
+        SELECT s.subsidy_id
+        FROM subsidy s
+        WHERE s.merge_key IN
+        <foreach item="key" collection="mergeKeys" open="(" separator="," close=")">
+            #{key}
+        </foreach>
+        )
+    </update>
+
+</mapper>

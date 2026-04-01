@@ -196,7 +196,7 @@ CREATE TABLE women_activity_info
 CREATE TABLE workplace_info
 (
     workplace_info_id                   BIGINT PRIMARY KEY DEFAULT nextval('workplace_info_id_seq'),
-    merge_key                           TEXT    NOT NULL UNIQUE,
+    merge_key                           TEXT NOT NULL UNIQUE,
     base_info                           BIGINT,
     women_activity_info                 BIGINT,
     compatibility_of_childcare_and_work BIGINT,
@@ -208,7 +208,7 @@ CREATE TABLE workplace_info
 
 CREATE TABLE company
 (
-    company_id            BIGINT PRIMARY KEY          DEFAULT nextval('company_id_seq'),
+    company_id            BIGINT PRIMARY KEY DEFAULT nextval('company_id_seq'),
     corporate_number      VARCHAR(13) UNIQUE NOT NULL,
     name                  VARCHAR(255),
     kana                  VARCHAR(255),
@@ -233,7 +233,7 @@ CREATE TABLE company
     qualification_grade   VARCHAR(255),
     workplace_info        TEXT,
     updated_at            TIMESTAMPTZ,
-    inserted_at           TIMESTAMPTZ                 DEFAULT now(),
+    inserted_at           TIMESTAMPTZ        DEFAULT now(),
     FOREIGN KEY (workplace_info) REFERENCES workplace_info (merge_key)
 );
 
@@ -276,11 +276,11 @@ CREATE TABLE company_finance
 
 CREATE TABLE company_item
 (
-    company_id BIGINT  NOT NULL REFERENCES company (company_id),
-    info_id    BIGINT  NOT NULL REFERENCES item_info (info_id),
+    company_id  BIGINT  NOT NULL REFERENCES company (company_id),
+    info_id     BIGINT  NOT NULL REFERENCES item_info (info_id),
     inserted_at TIMESTAMPTZ      DEFAULT now(),
-    deleted    BOOLEAN NOT NULL DEFAULT FALSE,
-    updated_at TIMESTAMPTZ,
+    deleted     BOOLEAN NOT NULL DEFAULT FALSE,
+    updated_at  TIMESTAMPTZ,
     UNIQUE (company_id, info_id)
 );
 
@@ -370,89 +370,3 @@ CREATE INDEX idx_company_finance_company_id ON company_finance (company_id);
 CREATE INDEX idx_finance_shareholder_finance_id ON finance_shareholder (finance_id);
 CREATE INDEX idx_finance_management_finance_id ON finance_management (finance_id);
 CREATE INDEX idx_patent_classification_patent_id ON patent_classification (patent_id);
-
-CREATE TABLE run_company
-(
-    run_id           VARCHAR(36) NOT NULL,
-    corporate_number VARCHAR(13) NOT NULL,
-    PRIMARY KEY (run_id, corporate_number)
-);
-
-CREATE TABLE run_patent
-(
-    run_id    VARCHAR(36) NOT NULL,
-    merge_key TEXT        NOT NULL,
-    PRIMARY KEY (run_id, merge_key)
-);
-
-CREATE TABLE run_classification
-(
-    run_id           VARCHAR(36) NOT NULL,
-    merge_key        TEXT        NOT NULL,
-    patent_merge_key TEXT        NOT NULL,
-    PRIMARY KEY (run_id, merge_key)
-);
-
-CREATE TABLE run_commendation
-(
-    run_id           VARCHAR(36) NOT NULL,
-    corporate_number VARCHAR(13) NOT NULL,
-    merge_key        TEXT        NOT NULL,
-    PRIMARY KEY (run_id, merge_key)
-);
-
-CREATE TABLE run_certification
-(
-    run_id           VARCHAR(36) NOT NULL,
-    corporate_number VARCHAR(13) NOT NULL,
-    merge_key        TEXT        NOT NULL,
-    PRIMARY KEY (run_id, merge_key)
-);
-
-CREATE TABLE run_finance
-(
-    run_id           VARCHAR(36) NOT NULL,
-    corporate_number VARCHAR(13) NOT NULL,
-    merge_key        TEXT        NOT NULL,
-    PRIMARY KEY (run_id, merge_key)
-);
-
-CREATE TABLE run_major_shareholder
-(
-    run_id            VARCHAR(36) NOT NULL,
-    finance_merge_key TEXT        NOT NULL,
-    merge_key         TEXT        NOT NULL,
-    PRIMARY KEY (run_id, merge_key)
-);
-
-CREATE TABLE run_management_index
-(
-    run_id            VARCHAR(36) NOT NULL,
-    finance_merge_key TEXT        NOT NULL,
-    merge_key         TEXT        NOT NULL,
-    PRIMARY KEY (run_id, merge_key)
-);
-
-CREATE TABLE run_subsidy
-(
-    run_id           VARCHAR(36) NOT NULL,
-    corporate_number VARCHAR(13) NOT NULL,
-    merge_key        TEXT        NOT NULL,
-    PRIMARY KEY (run_id, merge_key)
-);
-
-CREATE TABLE run_procurement
-(
-    run_id           VARCHAR(36) NOT NULL,
-    corporate_number VARCHAR(13) NOT NULL,
-    merge_key        TEXT        NOT NULL,
-    PRIMARY KEY (run_id, merge_key)
-);
-
-CREATE TABLE run_company_item
-(
-    run_id           VARCHAR(36) NOT NULL,
-    corporate_number VARCHAR(13) NOT NULL,
-    merge_key        TEXT        NOT NULL,
-    PRIMARY KEY (run_id, merge_key)
-);
