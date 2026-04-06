@@ -3,12 +3,8 @@ package com.java.companyhouse.service;
 import com.java.companyhouse.mapper.AdvisoryLockMapper;
 import com.java.companyhouse.mapper.SubsidyMapper;
 import com.java.companyhouse.model.dto.SubsidyDto;
-import com.java.companyhouse.model.receiver.CompanySnapshot;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import java.util.List;
-import java.util.UUID;
 
 @Service
 public class SubsidyService extends AbstractBatchService<SubsidyDto> {
@@ -23,42 +19,23 @@ public class SubsidyService extends AbstractBatchService<SubsidyDto> {
     }
 
     @Override
-    protected void processSnapshot(CompanySnapshot<SubsidyDto> snapshot) {
-        if (!isValidSnapshot(snapshot)) return;
-
-        String corporateNumber = snapshot.getCorporateNumber();
-        List<SubsidyDto> subsidies = snapshot.getEntities();
-
+    protected void acquireLock(String corporateNumber) {
         advisoryLockMapper.acquireAdvisoryLock(corporateNumber);
-
-        if (subsidies.isEmpty()) {
-            deleteAllSubsidies(corporateNumber);
-            return;
-        }
-
-        String syncId = UUID.randomUUID().toString();
-
-        upsertSubsidies(subsidies, syncId);
-        cleanupMissingSubsidies(corporateNumber, syncId);
     }
 
-    private boolean isValidSnapshot(CompanySnapshot<SubsidyDto> snapshot) {
-        return snapshot != null && snapshot.getCorporateNumber() != null;
-    }
-
-    private void deleteAllSubsidies(String corporateNumber) {
+    @Override
+    protected void onEmpty(String corporateNumber) {
         subsidyMapper.softDeleteAllCompanySubsidies(corporateNumber);
     }
 
-    private void upsertSubsidies(List<SubsidyDto> subsidies, String syncId) {
-        for (SubsidyDto dto : subsidies) {
-            if (dto == null) continue;
-            subsidyMapper.upsertSubsidy(dto);
-            subsidyMapper.upsertCompanySubsidy(dto, syncId);
-        }
+    @Override
+    protected void upsert(SubsidyDto entity, String syncId) {
+        subsidyMapper.upsertSubsidy(entity);
+        subsidyMapper.upsertCompanySubsidy(entity, syncId);
     }
 
-    private void cleanupMissingSubsidies(String corporateNumber, String syncId) {
+    @Override
+    protected void cleanup(String corporateNumber, String syncId) {
         subsidyMapper.softDeleteMissingCompanySubsidies(corporateNumber, syncId);
     }
 }

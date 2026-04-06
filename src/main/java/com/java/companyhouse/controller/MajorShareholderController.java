@@ -1,22 +1,20 @@
 package com.java.companyhouse.controller;
 
-import com.java.companyhouse.model.receiver.MajorShareholderBatchRequest;
+import com.java.companyhouse.model.dto.MajorShareholderDto;
+import com.java.companyhouse.model.receiver.FinanceMajorShareholderSnapshot;
 import com.java.companyhouse.service.MajorShareholderService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/major-shareholders")
-@RequiredArgsConstructor
-public class MajorShareholderController {
+@RequestMapping("/majorshareholders")
+@Validated
+@Tag(name = "MajorShareholder", description = "MajorShareholder Entity Endpoint")
+public class MajorShareholderController extends AbstractNestedBatchController<FinanceMajorShareholderSnapshot, MajorShareholderDto> {
 
-    private final MajorShareholderService majorShareholderService;
-
-    @PostMapping
-    public void receive(@RequestBody MajorShareholderBatchRequest request) {
-        majorShareholderService.receive(request);
+    public MajorShareholderController(MajorShareholderService service) {
+        super(service);
     }
 }

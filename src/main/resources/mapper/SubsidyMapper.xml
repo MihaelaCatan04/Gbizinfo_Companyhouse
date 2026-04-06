@@ -7,7 +7,7 @@
     <update id="upsertSubsidy">
         INSERT INTO subsidy (merge_key, date_of_approval, title, amount,
                              target, government_departments)
-        VALUES (#{mergeKey}, #{dateOfApproval}::date, #{title}, #{amount}::bigint,
+        VALUES (#{mergeKey}, #{dateOfApproval}, #{title}, #{amount}::bigint,
                 #{target}, #{governmentDepartments})
         ON CONFLICT (merge_key) DO NOTHING
     </update>

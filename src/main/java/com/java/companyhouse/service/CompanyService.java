@@ -3,7 +3,6 @@ package com.java.companyhouse.service;
 import com.java.companyhouse.mapper.AdvisoryLockMapper;
 import com.java.companyhouse.mapper.CompanyMapper;
 import com.java.companyhouse.model.dto.CompanyDto;
-import com.java.companyhouse.model.receiver.CompanySnapshot;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -20,8 +19,12 @@ public class CompanyService extends AbstractBatchService<CompanyDto> {
     }
 
     @Override
-    protected void processSnapshot(CompanySnapshot<CompanyDto> snapshot) {
-        advisoryLockMapper.acquireAdvisoryLock(snapshot.getCorporateNumber());
-        snapshot.getEntities().forEach(companyMapper::upsertCompany);
+    protected void acquireLock(String corporateNumber) {
+        advisoryLockMapper.acquireAdvisoryLock(corporateNumber);
+    }
+
+    @Override
+    protected void upsert(CompanyDto entity, String syncId) {
+        companyMapper.upsertCompany(entity);
     }
 }

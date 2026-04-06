@@ -3,7 +3,6 @@ package com.java.companyhouse.service;
 import com.java.companyhouse.mapper.AdvisoryLockMapper;
 import com.java.companyhouse.mapper.WomenActivityMapper;
 import com.java.companyhouse.model.dto.WomenActivityInfoDto;
-import com.java.companyhouse.model.receiver.CompanySnapshot;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -20,8 +19,12 @@ public class WomenActivityService extends AbstractBatchService<WomenActivityInfo
     }
 
     @Override
-    protected void processSnapshot(CompanySnapshot<WomenActivityInfoDto> snapshot) {
-        advisoryLockMapper.acquireAdvisoryLock(snapshot.getCorporateNumber());
-        snapshot.getEntities().forEach(womenActivityMapper::upsertWomenActivity);
+    protected void acquireLock(String corporateNumber) {
+        advisoryLockMapper.acquireAdvisoryLock(corporateNumber);
+    }
+
+    @Override
+    protected void upsert(WomenActivityInfoDto entity, String syncId) {
+        womenActivityMapper.upsertWomenActivity(entity);
     }
 }

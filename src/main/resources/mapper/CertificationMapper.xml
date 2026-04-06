@@ -7,9 +7,9 @@
     <update id="upsertCertification">
         INSERT INTO certification (merge_key, date_of_approval, title, target,
                                    government_departments, category)
-        VALUES (#{mergeKey}, #{dateOfApproval}::date, #{title}, #{target},
+        VALUES (#{mergeKey}, #{dateOfApproval}, #{title}, #{target},
                 #{governmentDepartments}, #{category})
-        ON CONFLICT (merge_key) DO NOTHING 
+        ON CONFLICT (merge_key) DO NOTHING
     </update>
 
     <update id="upsertCompanyCertification">
@@ -32,26 +32,22 @@
 
     <update id="softDeleteAllCompanyCertifications">
         UPDATE company_certification cc
-        SET deleted = true,
+        SET deleted    = true,
             updated_at = now()
         WHERE cc.deleted = false
-          AND cc.company_id = (
-            SELECT c.company_id
-            FROM company c
-            WHERE c.corporate_number = #{corporateNumber}
-        )
+          AND cc.company_id = (SELECT c.company_id
+                               FROM company c
+                               WHERE c.corporate_number = #{corporateNumber})
     </update>
 
     <update id="softDeleteMissingCompanyCertifications">
         UPDATE company_certification cc
-        SET deleted = true,
+        SET deleted    = true,
             updated_at = now()
         WHERE cc.deleted = false
-          AND cc.company_id = (
-            SELECT c.company_id
-            FROM company c
-            WHERE c.corporate_number = #{corporateNumber}
-        )
+          AND cc.company_id = (SELECT c.company_id
+                               FROM company c
+                               WHERE c.corporate_number = #{corporateNumber})
           AND cc.sync_id IS DISTINCT FROM #{syncId}::uuid
     </update>
 

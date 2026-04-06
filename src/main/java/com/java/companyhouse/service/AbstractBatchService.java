@@ -5,19 +5,50 @@ import com.java.companyhouse.model.receiver.TopicBatchRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
 @RequiredArgsConstructor
 public abstract class AbstractBatchService<T> {
 
     private final TransactionTemplate transactionTemplate;
 
     public void receive(TopicBatchRequest<T> request) {
-        if (request == null || request.getCompanies() == null) {
-            return;
-        }
+        if (request == null || request.getCompanies() == null) return;
         for (CompanySnapshot<T> snapshot : request.getCompanies()) {
             transactionTemplate.executeWithoutResult(status -> processSnapshot(snapshot));
         }
     }
 
-    protected abstract void processSnapshot(CompanySnapshot<T> snapshot);
+    private void processSnapshot(CompanySnapshot<T> snapshot) {
+        if (snapshot == null || snapshot.getCorporateNumber() == null) return;
+
+        String corporateNumber = snapshot.getCorporateNumber();
+        List<T> entities = snapshot.getEntities() == null ? Collections.emptyList() : snapshot.getEntities();
+
+        acquireLock(corporateNumber);
+
+        if (entities.isEmpty()) {
+            onEmpty(corporateNumber);
+            return;
+        }
+
+        String syncId = UUID.randomUUID().toString();
+        for (T entity : entities) {
+            if (entity != null) upsert(entity, syncId);
+        }
+        cleanup(corporateNumber, syncId);
+    }
+
+    protected abstract void acquireLock(String corporateNumber);
+
+    protected void onEmpty(String corporateNumber) {
+    }
+
+    protected void upsert(T entity, String syncId) {
+    }
+
+    protected void cleanup(String corporateNumber, String syncId) {
+    }
 }

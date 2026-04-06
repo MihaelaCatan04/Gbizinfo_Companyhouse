@@ -1,16 +1,16 @@
 package com.java.companyhouse.model.receiver;
 
-import lombok.AllArgsConstructor;
+import jakarta.validation.Valid;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
 
-@Setter
 @Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
-public class ManagementIndexBatchRequest {
-    private List<FinanceManagementIndexSnapshot> finances;
+public class NestedBatchRequest<S> {
+    @Valid
+    private List<S> snapshots;
 }

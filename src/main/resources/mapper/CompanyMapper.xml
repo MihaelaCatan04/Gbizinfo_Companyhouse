@@ -12,10 +12,10 @@
                              inserted_at, updated_at)
         VALUES (#{corporateNumber}, #{name}, #{kana}, #{nameEn}, #{postalCode},
                 #{location}, #{process}, #{aggregatedYear}, #{status},
-                #{closeDate}::date, #{closeCause}, #{kind}, #{representativeName},
+                #{closeDate}, #{closeCause}, #{kind}, #{representativeName},
                 #{capitalStock}, #{employeeNumber}, #{companySizeMale},
                 #{companySizeFemale}, #{businessSummary}, #{companyUrl},
-                #{foundingYear}, #{dateOfEstablishment}::date, #{qualificationGrade},
+                #{foundingYear}, #{dateOfEstablishment}, #{qualificationGrade},
                 NOW(), NULL)
         ON CONFLICT (corporate_number) DO UPDATE SET name                  = EXCLUDED.name,
                                                      kana                  = EXCLUDED.kana,

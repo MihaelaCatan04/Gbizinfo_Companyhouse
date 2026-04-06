@@ -3,12 +3,8 @@ package com.java.companyhouse.service;
 import com.java.companyhouse.mapper.AdvisoryLockMapper;
 import com.java.companyhouse.mapper.ProcurementMapper;
 import com.java.companyhouse.model.dto.ProcurementDto;
-import com.java.companyhouse.model.receiver.CompanySnapshot;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import java.util.List;
-import java.util.UUID;
 
 @Service
 public class ProcurementService extends AbstractBatchService<ProcurementDto> {
@@ -23,42 +19,23 @@ public class ProcurementService extends AbstractBatchService<ProcurementDto> {
     }
 
     @Override
-    protected void processSnapshot(CompanySnapshot<ProcurementDto> snapshot) {
-        if (!isValidSnapshot(snapshot)) return;
-
-        String corporateNumber = snapshot.getCorporateNumber();
-        List<ProcurementDto> procurements = snapshot.getEntities();
-
+    protected void acquireLock(String corporateNumber) {
         advisoryLockMapper.acquireAdvisoryLock(corporateNumber);
-
-        if (procurements.isEmpty()) {
-            deleteAllProcurements(corporateNumber);
-            return;
-        }
-
-        String syncId = UUID.randomUUID().toString();
-
-        upsertProcurements(procurements, syncId);
-        cleanupMissingProcurements(corporateNumber, syncId);
     }
 
-    private boolean isValidSnapshot(CompanySnapshot<ProcurementDto> snapshot) {
-        return snapshot != null && snapshot.getCorporateNumber() != null;
-    }
-
-    private void deleteAllProcurements(String corporateNumber) {
+    @Override
+    protected void onEmpty(String corporateNumber) {
         procurementMapper.softDeleteAllCompanyProcurements(corporateNumber);
     }
 
-    private void upsertProcurements(List<ProcurementDto> procurements, String syncId) {
-        for (ProcurementDto dto : procurements) {
-            if (dto == null) continue;
-            procurementMapper.upsertProcurement(dto);
-            procurementMapper.upsertCompanyProcurement(dto, syncId);
-        }
+    @Override
+    protected void upsert(ProcurementDto entity, String syncId) {
+        procurementMapper.upsertProcurement(entity);
+        procurementMapper.upsertCompanyProcurement(entity, syncId);
     }
 
-    private void cleanupMissingProcurements(String corporateNumber, String syncId) {
+    @Override
+    protected void cleanup(String corporateNumber, String syncId) {
         procurementMapper.softDeleteMissingCompanyProcurements(corporateNumber, syncId);
     }
 }

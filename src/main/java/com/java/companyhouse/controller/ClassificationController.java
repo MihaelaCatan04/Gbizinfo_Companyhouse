@@ -1,22 +1,20 @@
 package com.java.companyhouse.controller;
 
-import com.java.companyhouse.model.receiver.ClassificationBatchRequest;
+import com.java.companyhouse.model.dto.ClassificationDto;
+import com.java.companyhouse.model.receiver.PatentClassificationSnapshot;
 import com.java.companyhouse.service.ClassificationService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/classifications")
-@RequiredArgsConstructor
-public class ClassificationController {
+@Validated
+@Tag(name = "Classification", description = "Classification Entity Endpoint")
+public class ClassificationController extends AbstractNestedBatchController<PatentClassificationSnapshot, ClassificationDto> {
 
-    private final ClassificationService classificationService;
-
-    @PostMapping
-    public void receive(@RequestBody ClassificationBatchRequest request) {
-        classificationService.receive(request);
+    public ClassificationController(ClassificationService service) {
+        super(service);
     }
 }

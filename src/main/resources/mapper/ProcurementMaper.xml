@@ -7,7 +7,7 @@
     <update id="upsertProcurement">
         INSERT INTO procurement (merge_key, date_of_order, title, amount,
                                  government_departments, note)
-        VALUES (#{mergeKey}, #{dateOfOrder}::timestamptz, #{title}, #{amount},
+        VALUES (#{mergeKey}, #{dateOfOrder}, #{title}, #{amount},
                 #{governmentDepartments}, #{note})
         ON CONFLICT (merge_key) DO NOTHING
     </update>
@@ -32,26 +32,22 @@
 
     <update id="softDeleteAllCompanyProcurements">
         UPDATE company_procurement cp
-        SET deleted = true,
+        SET deleted    = true,
             updated_at = now()
         WHERE cp.deleted = false
-          AND cp.company_id = (
-            SELECT c.company_id
-            FROM company c
-            WHERE c.corporate_number = #{corporateNumber}
-        )
+          AND cp.company_id = (SELECT c.company_id
+                               FROM company c
+                               WHERE c.corporate_number = #{corporateNumber})
     </update>
 
     <update id="softDeleteMissingCompanyProcurements">
         UPDATE company_procurement cp
-        SET deleted = true,
+        SET deleted    = true,
             updated_at = now()
         WHERE cp.deleted = false
-          AND cp.company_id = (
-            SELECT c.company_id
-            FROM company c
-            WHERE c.corporate_number = #{corporateNumber}
-        )
+          AND cp.company_id = (SELECT c.company_id
+                               FROM company c
+                               WHERE c.corporate_number = #{corporateNumber})
           AND cp.sync_id IS DISTINCT FROM #{syncId}::uuid
     </update>
 

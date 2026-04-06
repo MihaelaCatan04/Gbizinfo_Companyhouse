@@ -3,11 +3,8 @@ package com.java.companyhouse.service;
 import com.java.companyhouse.mapper.AdvisoryLockMapper;
 import com.java.companyhouse.mapper.WorkplaceInfoMapper;
 import com.java.companyhouse.model.dto.WorkplaceInfoDto;
-import com.java.companyhouse.model.receiver.CompanySnapshot;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import java.util.List;
 
 @Service
 public class WorkplaceInfoService extends AbstractBatchService<WorkplaceInfoDto> {
@@ -22,35 +19,18 @@ public class WorkplaceInfoService extends AbstractBatchService<WorkplaceInfoDto>
     }
 
     @Override
-    protected void processSnapshot(CompanySnapshot<WorkplaceInfoDto> snapshot) {
-        if (!isValidSnapshot(snapshot)) return;
-
-        String corporateNumber = snapshot.getCorporateNumber();
-        List<WorkplaceInfoDto> entities = snapshot.getEntities();
-
+    protected void acquireLock(String corporateNumber) {
         advisoryLockMapper.acquireAdvisoryLock(corporateNumber);
-
-        if (entities.isEmpty()) {
-            clearWorkplaceInfo(corporateNumber);
-            return;
-        }
-
-        upsertWorkplaceInfos(entities);
     }
 
-    private boolean isValidSnapshot(CompanySnapshot<WorkplaceInfoDto> snapshot) {
-        return snapshot != null && snapshot.getCorporateNumber() != null;
-    }
-
-    private void clearWorkplaceInfo(String corporateNumber) {
+    @Override
+    protected void onEmpty(String corporateNumber) {
         workplaceInfoMapper.clearCompanyWorkplaceInfo(corporateNumber);
     }
 
-    private void upsertWorkplaceInfos(List<WorkplaceInfoDto> entities) {
-        for (WorkplaceInfoDto dto : entities) {
-            if (dto == null) continue;
-            workplaceInfoMapper.upsertWorkplaceInfo(dto);
-            workplaceInfoMapper.upsertCompanyWorkplaceInfo(dto);
-        }
+    @Override
+    protected void upsert(WorkplaceInfoDto entity, String syncId) {
+        workplaceInfoMapper.upsertWorkplaceInfo(entity);
+        workplaceInfoMapper.upsertCompanyWorkplaceInfo(entity);
     }
 }

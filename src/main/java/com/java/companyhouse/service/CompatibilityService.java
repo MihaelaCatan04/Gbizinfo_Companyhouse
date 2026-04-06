@@ -3,7 +3,6 @@ package com.java.companyhouse.service;
 import com.java.companyhouse.mapper.AdvisoryLockMapper;
 import com.java.companyhouse.mapper.CompatibilityMapper;
 import com.java.companyhouse.model.dto.CompatibilityOfChildcareAndWorkDto;
-import com.java.companyhouse.model.receiver.CompanySnapshot;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -20,8 +19,12 @@ public class CompatibilityService extends AbstractBatchService<CompatibilityOfCh
     }
 
     @Override
-    protected void processSnapshot(CompanySnapshot<CompatibilityOfChildcareAndWorkDto> snapshot) {
-        advisoryLockMapper.acquireAdvisoryLock(snapshot.getCorporateNumber());
-        snapshot.getEntities().forEach(compatibilityMapper::upsertCompatibility);
+    protected void acquireLock(String corporateNumber) {
+        advisoryLockMapper.acquireAdvisoryLock(corporateNumber);
+    }
+
+    @Override
+    protected void upsert(CompatibilityOfChildcareAndWorkDto entity, String syncId) {
+        compatibilityMapper.upsertCompatibility(entity);
     }
 }

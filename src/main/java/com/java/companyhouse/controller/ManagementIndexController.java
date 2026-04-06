@@ -1,22 +1,20 @@
 package com.java.companyhouse.controller;
 
-import com.java.companyhouse.model.receiver.ManagementIndexBatchRequest;
+import com.java.companyhouse.model.dto.ManagementIndexDto;
+import com.java.companyhouse.model.receiver.FinanceManagementIndexSnapshot;
 import com.java.companyhouse.service.ManagementIndexService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/management-indexes")
-@RequiredArgsConstructor
-public class ManagementIndexController {
+@RequestMapping("/managementindexes")
+@Validated
+@Tag(name = "ManagementIndex", description = "ManagementIndex Entity Endpoint")
+public class ManagementIndexController extends AbstractNestedBatchController<FinanceManagementIndexSnapshot, ManagementIndexDto> {
 
-    private final ManagementIndexService managementIndexService;
-
-    @PostMapping
-    public void receive(@RequestBody ManagementIndexBatchRequest request) {
-        managementIndexService.receive(request);
+    public ManagementIndexController(ManagementIndexService service) {
+        super(service);
     }
 }

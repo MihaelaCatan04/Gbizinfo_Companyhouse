@@ -8,7 +8,7 @@
         INSERT INTO patent (merge_key, patent_type, registration_number,
                             application_date, title, url)
         VALUES (#{mergeKey}, #{patentType}, #{registrationNumber},
-                #{applicationDate}::date, #{title}, #{url})
+                #{applicationDate}, #{title}, #{url})
         ON CONFLICT (merge_key) DO NOTHING
     </update>
 

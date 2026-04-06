@@ -3,12 +3,8 @@ package com.java.companyhouse.service;
 import com.java.companyhouse.mapper.AdvisoryLockMapper;
 import com.java.companyhouse.mapper.PatentMapper;
 import com.java.companyhouse.model.dto.PatentDto;
-import com.java.companyhouse.model.receiver.CompanySnapshot;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import java.util.List;
-import java.util.UUID;
 
 @Service
 public class PatentService extends AbstractBatchService<PatentDto> {
@@ -23,42 +19,23 @@ public class PatentService extends AbstractBatchService<PatentDto> {
     }
 
     @Override
-    protected void processSnapshot(CompanySnapshot<PatentDto> snapshot) {
-        if (!isValidSnapshot(snapshot)) return;
-
-        String corporateNumber = snapshot.getCorporateNumber();
-        List<PatentDto> patents = snapshot.getEntities();
-
+    protected void acquireLock(String corporateNumber) {
         advisoryLockMapper.acquireAdvisoryLock(corporateNumber);
-
-        if (patents.isEmpty()) {
-            deleteAllPatents(corporateNumber);
-            return;
-        }
-
-        String syncId = UUID.randomUUID().toString();
-
-        upsertPatents(patents, syncId);
-        cleanupMissingPatents(corporateNumber, syncId);
     }
 
-    private boolean isValidSnapshot(CompanySnapshot<PatentDto> snapshot) {
-        return snapshot != null && snapshot.getCorporateNumber() != null;
-    }
-
-    private void deleteAllPatents(String corporateNumber) {
+    @Override
+    protected void onEmpty(String corporateNumber) {
         patentMapper.softDeleteAllCompanyPatents(corporateNumber);
     }
 
-    private void upsertPatents(List<PatentDto> patents, String syncId) {
-        for (PatentDto dto : patents) {
-            if (dto == null) continue;
-            patentMapper.upsertPatent(dto);
-            patentMapper.upsertCompanyPatent(dto, syncId);
-        }
+    @Override
+    protected void upsert(PatentDto entity, String syncId) {
+        patentMapper.upsertPatent(entity);
+        patentMapper.upsertCompanyPatent(entity, syncId);
     }
 
-    private void cleanupMissingPatents(String corporateNumber, String syncId) {
+    @Override
+    protected void cleanup(String corporateNumber, String syncId) {
         patentMapper.softDeleteMissingCompanyPatents(corporateNumber, syncId);
     }
 }

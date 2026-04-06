@@ -3,12 +3,8 @@ package com.java.companyhouse.service;
 import com.java.companyhouse.mapper.AdvisoryLockMapper;
 import com.java.companyhouse.mapper.ItemInfoMapper;
 import com.java.companyhouse.model.dto.ItemInfoDto;
-import com.java.companyhouse.model.receiver.CompanySnapshot;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import java.util.List;
-import java.util.UUID;
 
 @Service
 public class ItemInfoService extends AbstractBatchService<ItemInfoDto> {
@@ -23,42 +19,23 @@ public class ItemInfoService extends AbstractBatchService<ItemInfoDto> {
     }
 
     @Override
-    protected void processSnapshot(CompanySnapshot<ItemInfoDto> snapshot) {
-        if (!isValidSnapshot(snapshot)) return;
-
-        String corporateNumber = snapshot.getCorporateNumber();
-        List<ItemInfoDto> itemInfos = snapshot.getEntities();
-
+    protected void acquireLock(String corporateNumber) {
         advisoryLockMapper.acquireAdvisoryLock(corporateNumber);
-
-        if (itemInfos.isEmpty()) {
-            deleteAllItems(corporateNumber);
-            return;
-        }
-
-        String syncId = UUID.randomUUID().toString();
-
-        upsertItems(itemInfos, syncId);
-        cleanupMissingItems(corporateNumber, syncId);
     }
 
-    private boolean isValidSnapshot(CompanySnapshot<ItemInfoDto> snapshot) {
-        return snapshot != null && snapshot.getCorporateNumber() != null;
-    }
-
-    private void deleteAllItems(String corporateNumber) {
+    @Override
+    protected void onEmpty(String corporateNumber) {
         itemInfoMapper.softDeleteAllCompanyItems(corporateNumber);
     }
 
-    private void upsertItems(List<ItemInfoDto> itemInfos, String syncId) {
-        for (ItemInfoDto dto : itemInfos) {
-            if (dto == null) continue;
-            itemInfoMapper.upsertItemInfo(dto);
-            itemInfoMapper.upsertCompanyItem(dto, syncId);
-        }
+    @Override
+    protected void upsert(ItemInfoDto entity, String syncId) {
+        itemInfoMapper.upsertItemInfo(entity);
+        itemInfoMapper.upsertCompanyItem(entity, syncId);
     }
 
-    private void cleanupMissingItems(String corporateNumber, String syncId) {
+    @Override
+    protected void cleanup(String corporateNumber, String syncId) {
         itemInfoMapper.softDeleteMissingCompanyItems(corporateNumber, syncId);
     }
 }
