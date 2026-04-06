@@ -7,34 +7,23 @@
     <update id="upsertFinance">
         INSERT INTO finance (merge_key, accounting_standards, fiscal_year_cover_page)
         VALUES (#{mergeKey}, #{accountingStandards}, #{fiscalYearCoverPage})
-        ON CONFLICT (merge_key) DO UPDATE SET accounting_standards   = EXCLUDED.accounting_standards,
-                                              fiscal_year_cover_page = EXCLUDED.fiscal_year_cover_page
-        WHERE (
-               finance.accounting_standards,
-               finance.fiscal_year_cover_page
-                  ) IS DISTINCT FROM (
-                                      EXCLUDED.accounting_standards,
-                                      EXCLUDED.fiscal_year_cover_page
-            )
+        ON CONFLICT (merge_key) DO NOTHING
     </update>
 
     <update id="upsertCompanyFinance">
-        INSERT INTO company_finance (
-            company_id,
-            finance_id,
-            inserted_at,
-            updated_at,
-            deleted,
-            sync_id
-        )
+        INSERT INTO company_finance (company_id,
+                                     finance_id,
+                                     inserted_at,
+                                     updated_at,
+                                     deleted,
+                                     sync_id)
         SELECT c.company_id, f.finance_id, now(), now(), false, #{syncId}::uuid
         FROM company c
                  JOIN finance f ON f.merge_key = #{dto.mergeKey}
         WHERE c.corporate_number = #{dto.corporateNumber}
-        ON CONFLICT (company_id, finance_id) DO UPDATE SET
-                                                           deleted = false,
+        ON CONFLICT (company_id, finance_id) DO UPDATE SET deleted    = false,
                                                            updated_at = now(),
-                                                           sync_id = EXCLUDED.sync_id
+                                                           sync_id    = EXCLUDED.sync_id
         WHERE company_finance.deleted IS DISTINCT FROM false
            OR company_finance.sync_id IS DISTINCT FROM EXCLUDED.sync_id
     </update>

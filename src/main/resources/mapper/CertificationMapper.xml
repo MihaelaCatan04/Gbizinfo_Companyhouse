@@ -9,43 +9,23 @@
                                    government_departments, category)
         VALUES (#{mergeKey}, #{dateOfApproval}::date, #{title}, #{target},
                 #{governmentDepartments}, #{category})
-        ON CONFLICT (merge_key) DO UPDATE SET date_of_approval       = EXCLUDED.date_of_approval,
-                                              title                  = EXCLUDED.title,
-                                              target                 = EXCLUDED.target,
-                                              government_departments = EXCLUDED.government_departments,
-                                              category               = EXCLUDED.category
-        WHERE (
-               certification.date_of_approval,
-               certification.title,
-               certification.target,
-               certification.government_departments,
-               certification.category
-                  ) IS DISTINCT FROM (
-                                      EXCLUDED.date_of_approval,
-                                      EXCLUDED.title,
-                                      EXCLUDED.target,
-                                      EXCLUDED.government_departments,
-                                      EXCLUDED.category
-            )
+        ON CONFLICT (merge_key) DO NOTHING 
     </update>
 
     <update id="upsertCompanyCertification">
-        INSERT INTO company_certification (
-            company_id,
-            certification_id,
-            inserted_at,
-            updated_at,
-            deleted,
-            sync_id
-        )
+        INSERT INTO company_certification (company_id,
+                                           certification_id,
+                                           inserted_at,
+                                           updated_at,
+                                           deleted,
+                                           sync_id)
         SELECT c.company_id, e.certification_id, now(), now(), false, #{syncId}::uuid
         FROM company c
                  JOIN certification e ON e.merge_key = #{dto.mergeKey}
         WHERE c.corporate_number = #{dto.corporateNumber}
-        ON CONFLICT (company_id, certification_id) DO UPDATE SET
-                                                                 deleted = false,
+        ON CONFLICT (company_id, certification_id) DO UPDATE SET deleted    = false,
                                                                  updated_at = now(),
-                                                                 sync_id = EXCLUDED.sync_id
+                                                                 sync_id    = EXCLUDED.sync_id
         WHERE company_certification.deleted IS DISTINCT FROM false
            OR company_certification.sync_id IS DISTINCT FROM EXCLUDED.sync_id
     </update>

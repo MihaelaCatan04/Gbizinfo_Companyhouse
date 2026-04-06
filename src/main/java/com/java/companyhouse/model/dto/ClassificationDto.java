@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ClassificationDto {
+    private String corporateNumber;
     private String patentMergeKey;
     private String mergeKey;
     private String codeValue;

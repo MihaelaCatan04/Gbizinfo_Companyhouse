@@ -19,27 +19,7 @@
                 #{averageContinuousServiceYears},
                 #{averageAge},
                 #{monthAveragePredeterminedOvertimeHours})
-        ON CONFLICT (merge_key) DO UPDATE SET average_continuous_service_years_type      = EXCLUDED.average_continuous_service_years_type,
-                                              average_continuous_service_years_male      = EXCLUDED.average_continuous_service_years_male,
-                                              average_continuous_service_years_female    = EXCLUDED.average_continuous_service_years_female,
-                                              average_continuous_service_years           = EXCLUDED.average_continuous_service_years,
-                                              average_age                                = EXCLUDED.average_age,
-                                              month_average_predetermined_overtime_hours = EXCLUDED.month_average_predetermined_overtime_hours
-        WHERE (
-               base_info.average_continuous_service_years_type,
-               base_info.average_continuous_service_years_male,
-               base_info.average_continuous_service_years_female,
-               base_info.average_continuous_service_years,
-               base_info.average_age,
-               base_info.month_average_predetermined_overtime_hours
-                  ) IS DISTINCT FROM (
-                                      EXCLUDED.average_continuous_service_years_type,
-                                      EXCLUDED.average_continuous_service_years_male,
-                                      EXCLUDED.average_continuous_service_years_female,
-                                      EXCLUDED.average_continuous_service_years,
-                                      EXCLUDED.average_age,
-                                      EXCLUDED.month_average_predetermined_overtime_hours
-            )
+        ON CONFLICT (merge_key) DO NOTHING
     </update>
 
 </mapper>

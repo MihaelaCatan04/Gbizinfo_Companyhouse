@@ -228,40 +228,34 @@ CREATE TABLE company
 
 CREATE TABLE company_certification
 (
-    company_id       BIGINT NOT NULL,
-    certification_id BIGINT NOT NULL,
+    company_id       BIGINT NOT NULL REFERENCES company (company_id),
+    certification_id BIGINT NOT NULL REFERENCES certification (certification_id),
     inserted_at      TIMESTAMPTZ DEFAULT now(),
     deleted          BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at       TIMESTAMPTZ,
     sync_id          UUID,
-    FOREIGN KEY (company_id) REFERENCES company (company_id),
-    FOREIGN KEY (certification_id) REFERENCES certification (certification_id),
     UNIQUE (company_id, certification_id)
 );
 
 CREATE TABLE company_commendation
 (
-    company_id      BIGINT NOT NULL,
-    commendation_id BIGINT NOT NULL,
+    company_id      BIGINT NOT NULL REFERENCES company (company_id),
+    commendation_id BIGINT NOT NULL REFERENCES commendation (commendation_id),
     inserted_at     TIMESTAMPTZ DEFAULT now(),
     deleted         BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at      TIMESTAMPTZ,
     sync_id         UUID,
-    FOREIGN KEY (company_id) REFERENCES company (company_id),
-    FOREIGN KEY (commendation_id) REFERENCES commendation (commendation_id),
     UNIQUE (company_id, commendation_id)
 );
 
 CREATE TABLE company_finance
 (
-    company_id  BIGINT NOT NULL,
-    finance_id  BIGINT NOT NULL,
+    company_id  BIGINT NOT NULL REFERENCES company (company_id),
+    finance_id  BIGINT NOT NULL REFERENCES finance (finance_id),
     inserted_at TIMESTAMPTZ DEFAULT now(),
     deleted     BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at  TIMESTAMPTZ,
     sync_id     UUID,
-    FOREIGN KEY (company_id) REFERENCES company (company_id),
-    FOREIGN KEY (finance_id) REFERENCES finance (finance_id),
     UNIQUE (company_id, finance_id)
 );
 
@@ -278,105 +272,102 @@ CREATE TABLE company_item
 
 CREATE TABLE company_patent
 (
-    company_id  BIGINT NOT NULL,
-    patent_id   BIGINT NOT NULL,
+    company_id  BIGINT NOT NULL REFERENCES company (company_id),
+    patent_id   BIGINT NOT NULL REFERENCES patent (patent_id),
     inserted_at TIMESTAMPTZ DEFAULT now(),
     deleted     BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at  TIMESTAMPTZ,
     sync_id     UUID,
-    FOREIGN KEY (company_id) REFERENCES company (company_id),
-    FOREIGN KEY (patent_id) REFERENCES patent (patent_id),
     UNIQUE (company_id, patent_id)
 );
 
 CREATE TABLE company_procurement
 (
-    company_id     BIGINT NOT NULL,
-    procurement_id BIGINT NOT NULL,
+    company_id     BIGINT NOT NULL REFERENCES company (company_id),
+    procurement_id BIGINT NOT NULL REFERENCES procurement (procurement_id),
     inserted_at    TIMESTAMPTZ DEFAULT now(),
     deleted        BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at     TIMESTAMPTZ,
     sync_id        UUID,
-    FOREIGN KEY (company_id) REFERENCES company (company_id),
-    FOREIGN KEY (procurement_id) REFERENCES procurement (procurement_id),
     UNIQUE (company_id, procurement_id)
 );
 
 CREATE TABLE company_subsidy
 (
-    company_id  BIGINT NOT NULL,
-    subsidy_id  BIGINT NOT NULL,
+    company_id  BIGINT NOT NULL REFERENCES company (company_id),
+    subsidy_id  BIGINT NOT NULL REFERENCES subsidy (subsidy_id),
     inserted_at TIMESTAMPTZ DEFAULT now(),
     deleted     BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at  TIMESTAMPTZ,
     sync_id     UUID,
-    FOREIGN KEY (company_id) REFERENCES company (company_id),
-    FOREIGN KEY (subsidy_id) REFERENCES subsidy (subsidy_id),
     UNIQUE (company_id, subsidy_id)
-);
-
-CREATE TABLE finance_management
-(
-    finance_id          BIGINT NOT NULL,
-    management_index_id BIGINT NOT NULL,
-    inserted_at         TIMESTAMPTZ DEFAULT now(),
-    deleted             BOOLEAN NOT NULL DEFAULT FALSE,
-    updated_at          TIMESTAMPTZ,
-    sync_id             UUID,
-    FOREIGN KEY (finance_id) REFERENCES finance (finance_id),
-    FOREIGN KEY (management_index_id) REFERENCES management_index (management_index_id),
-    UNIQUE (finance_id, management_index_id)
 );
 
 CREATE TABLE finance_shareholder
 (
-    finance_id           BIGINT NOT NULL,
-    major_shareholder_id BIGINT NOT NULL,
+    company_id           BIGINT NOT NULL REFERENCES company (company_id),
+    finance_id           BIGINT NOT NULL REFERENCES finance (finance_id),
+    major_shareholder_id BIGINT NOT NULL REFERENCES major_shareholder (major_shareholder_id),
     inserted_at          TIMESTAMPTZ DEFAULT now(),
     deleted              BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at           TIMESTAMPTZ,
     sync_id              UUID,
-    FOREIGN KEY (finance_id) REFERENCES finance (finance_id),
-    FOREIGN KEY (major_shareholder_id) REFERENCES major_shareholder (major_shareholder_id),
-    UNIQUE (finance_id, major_shareholder_id)
+    UNIQUE (company_id, finance_id, major_shareholder_id)
+);
+
+CREATE TABLE finance_management
+(
+    company_id          BIGINT NOT NULL REFERENCES company (company_id),
+    finance_id          BIGINT NOT NULL REFERENCES finance (finance_id),
+    management_index_id BIGINT NOT NULL REFERENCES management_index (management_index_id),
+    inserted_at         TIMESTAMPTZ DEFAULT now(),
+    deleted             BOOLEAN NOT NULL DEFAULT FALSE,
+    updated_at          TIMESTAMPTZ,
+    sync_id             UUID,
+    UNIQUE (company_id, finance_id, management_index_id)
 );
 
 CREATE TABLE patent_classification
 (
-    patent_id         BIGINT NOT NULL,
-    classification_id BIGINT NOT NULL,
+    company_id        BIGINT NOT NULL REFERENCES company (company_id),
+    patent_id         BIGINT NOT NULL REFERENCES patent (patent_id),
+    classification_id BIGINT NOT NULL REFERENCES classification (classification_id),
     inserted_at       TIMESTAMPTZ DEFAULT now(),
     deleted           BOOLEAN NOT NULL DEFAULT FALSE,
     updated_at        TIMESTAMPTZ,
     sync_id           UUID,
-    FOREIGN KEY (patent_id) REFERENCES patent (patent_id),
-    FOREIGN KEY (classification_id) REFERENCES classification (classification_id),
-    UNIQUE (patent_id, classification_id)
+    UNIQUE (company_id, patent_id, classification_id)
 );
 
 CREATE INDEX idx_company_corporate_number ON company (corporate_number);
 CREATE INDEX idx_company_workplace_info ON company (workplace_info);
 
 CREATE INDEX idx_company_item_company_id ON company_item (company_id);
+CREATE INDEX idx_company_item_sync ON company_item (company_id, sync_id);
+
 CREATE INDEX idx_company_patent_company_id ON company_patent (company_id);
+CREATE INDEX idx_company_patent_sync ON company_patent (company_id, sync_id);
+
 CREATE INDEX idx_company_certification_company_id ON company_certification (company_id);
+CREATE INDEX idx_company_certification_sync ON company_certification (company_id, sync_id);
+
 CREATE INDEX idx_company_subsidy_company_id ON company_subsidy (company_id);
+CREATE INDEX idx_company_subsidy_sync ON company_subsidy (company_id, sync_id);
+
 CREATE INDEX idx_company_commendation_company_id ON company_commendation (company_id);
+CREATE INDEX idx_company_commendation_sync ON company_commendation (company_id, sync_id);
+
 CREATE INDEX idx_company_procurement_company_id ON company_procurement (company_id);
+CREATE INDEX idx_company_procurement_sync ON company_procurement (company_id, sync_id);
+
 CREATE INDEX idx_company_finance_company_id ON company_finance (company_id);
+CREATE INDEX idx_company_finance_sync ON company_finance (company_id, sync_id);
 
-CREATE INDEX idx_finance_shareholder_finance_id ON finance_shareholder (finance_id);
-CREATE INDEX idx_finance_management_finance_id ON finance_management (finance_id);
-CREATE INDEX idx_patent_classification_patent_id ON patent_classification (patent_id);
+CREATE INDEX idx_finance_shareholder_company_finance ON finance_shareholder (company_id, finance_id);
+CREATE INDEX idx_finance_shareholder_sync ON finance_shareholder (company_id, finance_id, sync_id);
 
-CREATE INDEX idx_company_item_company_sync ON company_item (company_id, sync_id);
-CREATE INDEX idx_company_patent_company_sync ON company_patent (company_id, sync_id);
-CREATE INDEX idx_company_certification_company_sync ON company_certification (company_id, sync_id);
-CREATE INDEX idx_company_subsidy_company_sync ON company_subsidy (company_id, sync_id);
-CREATE INDEX idx_company_commendation_company_sync ON company_commendation (company_id, sync_id);
-CREATE INDEX idx_company_procurement_company_sync ON company_procurement (company_id, sync_id);
-CREATE INDEX idx_company_finance_company_sync ON company_finance (company_id, sync_id);
+CREATE INDEX idx_finance_management_company_finance ON finance_management (company_id, finance_id);
+CREATE INDEX idx_finance_management_sync ON finance_management (company_id, finance_id, sync_id);
 
-CREATE INDEX idx_finance_shareholder_finance_sync ON finance_shareholder (finance_id, sync_id);
-CREATE INDEX idx_finance_management_finance_sync ON finance_management (finance_id, sync_id);
-CREATE INDEX idx_patent_classification_patent_sync ON patent_classification (patent_id, sync_id);
+CREATE INDEX idx_patent_classification_company_patent ON patent_classification (company_id, patent_id);
+CREATE INDEX idx_patent_classification_sync ON patent_classification (company_id, patent_id, sync_id);

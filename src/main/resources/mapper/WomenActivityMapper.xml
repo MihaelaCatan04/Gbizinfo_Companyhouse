@@ -19,27 +19,7 @@
                 #{genderTotalOfManager},
                 #{femaleShareOfOfficers},
                 #{genderTotalOfOfficers})
-        ON CONFLICT (merge_key) DO UPDATE SET female_workers_proportion_type = EXCLUDED.female_workers_proportion_type,
-                                              female_workers_proportion      = EXCLUDED.female_workers_proportion,
-                                              female_share_of_manager        = EXCLUDED.female_share_of_manager,
-                                              gender_total_of_manager        = EXCLUDED.gender_total_of_manager,
-                                              female_share_of_officers       = EXCLUDED.female_share_of_officers,
-                                              gender_total_of_officers       = EXCLUDED.gender_total_of_officers
-        WHERE (
-               women_activity_info.female_workers_proportion_type,
-               women_activity_info.female_workers_proportion,
-               women_activity_info.female_share_of_manager,
-               women_activity_info.gender_total_of_manager,
-               women_activity_info.female_share_of_officers,
-               women_activity_info.gender_total_of_officers
-                  ) IS DISTINCT FROM (
-                                      EXCLUDED.female_workers_proportion_type,
-                                      EXCLUDED.female_workers_proportion,
-                                      EXCLUDED.female_share_of_manager,
-                                      EXCLUDED.gender_total_of_manager,
-                                      EXCLUDED.female_share_of_officers,
-                                      EXCLUDED.gender_total_of_officers
-            )
+        ON CONFLICT (merge_key) DO NOTHING
     </update>
 
 </mapper>

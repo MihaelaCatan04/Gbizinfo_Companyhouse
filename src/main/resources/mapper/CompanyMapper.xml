@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
 <mapper namespace="com.java.companyhouse.mapper.CompanyMapper">
-
     <update id="upsertCompany">
         INSERT INTO company (corporate_number, name, kana, name_en, postal_code,
                              location, process, aggregated_year, status, close_date,
                              close_cause, kind, representative_name, capital_stock,
                              employee_number, company_size_male, company_size_female,
                              business_summary, company_url, founding_year,
-                             date_of_establishment, qualification_grade)
+                             date_of_establishment, qualification_grade,
+                             inserted_at, updated_at)
         VALUES (#{corporateNumber}, #{name}, #{kana}, #{nameEn}, #{postalCode},
                 #{location}, #{process}, #{aggregatedYear}, #{status},
                 #{closeDate}::date, #{closeCause}, #{kind}, #{representativeName},
                 #{capitalStock}, #{employeeNumber}, #{companySizeMale},
                 #{companySizeFemale}, #{businessSummary}, #{companyUrl},
-                #{foundingYear}, #{dateOfEstablishment}::date, #{qualificationGrade})
+                #{foundingYear}, #{dateOfEstablishment}::date, #{qualificationGrade},
+                NOW(), NULL)
         ON CONFLICT (corporate_number) DO UPDATE SET name                  = EXCLUDED.name,
                                                      kana                  = EXCLUDED.kana,
                                                      name_en               = EXCLUDED.name_en,
@@ -38,51 +38,27 @@
                                                      founding_year         = EXCLUDED.founding_year,
                                                      date_of_establishment = EXCLUDED.date_of_establishment,
                                                      qualification_grade   = EXCLUDED.qualification_grade,
-                                                     updated_at            = now()
-        WHERE (
-               company.name,
-               company.kana,
-               company.name_en,
-               company.postal_code,
-               company.location,
-               company.process,
-               company.aggregated_year,
-               company.status,
-               company.close_date,
-               company.close_cause,
-               company.kind,
-               company.representative_name,
-               company.capital_stock,
-               company.employee_number,
-               company.company_size_male,
-               company.company_size_female,
-               company.business_summary,
-               company.company_url,
-               company.founding_year,
-               company.date_of_establishment,
-               company.qualification_grade
-                  ) IS DISTINCT FROM (
-                                      EXCLUDED.name,
-                                      EXCLUDED.kana,
-                                      EXCLUDED.name_en,
-                                      EXCLUDED.postal_code,
-                                      EXCLUDED.location,
-                                      EXCLUDED.process,
-                                      EXCLUDED.aggregated_year,
-                                      EXCLUDED.status,
-                                      EXCLUDED.close_date,
-                                      EXCLUDED.close_cause,
-                                      EXCLUDED.kind,
-                                      EXCLUDED.representative_name,
-                                      EXCLUDED.capital_stock,
-                                      EXCLUDED.employee_number,
-                                      EXCLUDED.company_size_male,
-                                      EXCLUDED.company_size_female,
-                                      EXCLUDED.business_summary,
-                                      EXCLUDED.company_url,
-                                      EXCLUDED.founding_year,
-                                      EXCLUDED.date_of_establishment,
-                                      EXCLUDED.qualification_grade)
+                                                     updated_at            = NOW()
+        WHERE company.name IS DISTINCT FROM EXCLUDED.name
+           OR company.kana IS DISTINCT FROM EXCLUDED.kana
+           OR company.name_en IS DISTINCT FROM EXCLUDED.name_en
+           OR company.postal_code IS DISTINCT FROM EXCLUDED.postal_code
+           OR company.location IS DISTINCT FROM EXCLUDED.location
+           OR company.process IS DISTINCT FROM EXCLUDED.process
+           OR company.aggregated_year IS DISTINCT FROM EXCLUDED.aggregated_year
+           OR company.status IS DISTINCT FROM EXCLUDED.status
+           OR company.close_date IS DISTINCT FROM EXCLUDED.close_date
+           OR company.close_cause IS DISTINCT FROM EXCLUDED.close_cause
+           OR company.kind IS DISTINCT FROM EXCLUDED.kind
+           OR company.representative_name IS DISTINCT FROM EXCLUDED.representative_name
+           OR company.capital_stock IS DISTINCT FROM EXCLUDED.capital_stock
+           OR company.employee_number IS DISTINCT FROM EXCLUDED.employee_number
+           OR company.company_size_male IS DISTINCT FROM EXCLUDED.company_size_male
+           OR company.company_size_female IS DISTINCT FROM EXCLUDED.company_size_female
+           OR company.business_summary IS DISTINCT FROM EXCLUDED.business_summary
+           OR company.company_url IS DISTINCT FROM EXCLUDED.company_url
+           OR company.founding_year IS DISTINCT FROM EXCLUDED.founding_year
+           OR company.date_of_establishment IS DISTINCT FROM EXCLUDED.date_of_establishment
+           OR company.qualification_grade IS DISTINCT FROM EXCLUDED.qualification_grade
     </update>
-
 </mapper>

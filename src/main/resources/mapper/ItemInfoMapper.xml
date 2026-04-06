@@ -7,37 +7,23 @@
     <update id="upsertItemInfo">
         INSERT INTO item_info (merge_key, value, is_industry, deleted)
         VALUES (#{mergeKey}, #{value}, #{isIndustry}, false)
-        ON CONFLICT (merge_key) DO UPDATE SET value       = EXCLUDED.value,
-                                              is_industry = EXCLUDED.is_industry,
-                                              deleted     = false
-        WHERE (
-               item_info.value,
-               item_info.is_industry,
-               item_info.deleted
-                  ) IS DISTINCT FROM (
-                                      EXCLUDED.value,
-                                      EXCLUDED.is_industry,
-                                      false
-            )
+        ON CONFLICT (merge_key) DO NOTHING
     </update>
 
     <update id="upsertCompanyItem">
-        INSERT INTO company_item (
-            company_id,
-            info_id,
-            inserted_at,
-            updated_at,
-            deleted,
-            sync_id
-        )
+        INSERT INTO company_item (company_id,
+                                  info_id,
+                                  inserted_at,
+                                  updated_at,
+                                  deleted,
+                                  sync_id)
         SELECT c.company_id, i.info_id, now(), now(), false, #{syncId}::uuid
         FROM company c
                  JOIN item_info i ON i.merge_key = #{dto.mergeKey}
         WHERE c.corporate_number = #{dto.corporateNumber}
-        ON CONFLICT (company_id, info_id) DO UPDATE SET
-                                                        deleted = false,
+        ON CONFLICT (company_id, info_id) DO UPDATE SET deleted    = false,
                                                         updated_at = now(),
-                                                        sync_id = EXCLUDED.sync_id
+                                                        sync_id    = EXCLUDED.sync_id
         WHERE company_item.deleted IS DISTINCT FROM false
            OR company_item.sync_id IS DISTINCT FROM EXCLUDED.sync_id
     </update>

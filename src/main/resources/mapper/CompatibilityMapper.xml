@@ -15,21 +15,7 @@
                 #{numberOfMaternityLeave},
                 #{paternityLeaveAcquisitionNum},
                 #{maternityLeaveAcquisitionNum})
-        ON CONFLICT (merge_key) DO UPDATE SET number_of_paternity_leave       = EXCLUDED.number_of_paternity_leave,
-                                              number_of_maternity_leave       = EXCLUDED.number_of_maternity_leave,
-                                              paternity_leave_acquisition_num = EXCLUDED.paternity_leave_acquisition_num,
-                                              maternity_leave_acquisition_num = EXCLUDED.maternity_leave_acquisition_num
-        WHERE (
-               compatibility_of_childcare_and_work.number_of_paternity_leave,
-               compatibility_of_childcare_and_work.number_of_maternity_leave,
-               compatibility_of_childcare_and_work.paternity_leave_acquisition_num,
-               compatibility_of_childcare_and_work.maternity_leave_acquisition_num
-                  ) IS DISTINCT FROM (
-                                      EXCLUDED.number_of_paternity_leave,
-                                      EXCLUDED.number_of_maternity_leave,
-                                      EXCLUDED.paternity_leave_acquisition_num,
-                                      EXCLUDED.maternity_leave_acquisition_num
-            )
+        ON CONFLICT (merge_key) DO NOTHING
     </update>
 
 </mapper>

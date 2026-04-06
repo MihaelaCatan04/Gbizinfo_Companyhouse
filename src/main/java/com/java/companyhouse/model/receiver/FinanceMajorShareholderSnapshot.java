@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FinanceMajorShareholderSnapshot {
+    private String corporateNumber;
     private String financeMergeKey;
     private List<MajorShareholderDto> shareholders;
 }

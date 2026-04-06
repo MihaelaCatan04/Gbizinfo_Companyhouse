@@ -2,14 +2,20 @@ package com.java.companyhouse.service;
 
 import com.java.companyhouse.model.receiver.CompanySnapshot;
 import com.java.companyhouse.model.receiver.TopicBatchRequest;
-import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.support.TransactionTemplate;
 
+@RequiredArgsConstructor
 public abstract class AbstractBatchService<T> {
 
-    @Transactional
+    private final TransactionTemplate transactionTemplate;
+
     public void receive(TopicBatchRequest<T> request) {
+        if (request == null || request.getCompanies() == null) {
+            return;
+        }
         for (CompanySnapshot<T> snapshot : request.getCompanies()) {
-            processSnapshot(snapshot);
+            transactionTemplate.executeWithoutResult(status -> processSnapshot(snapshot));
         }
     }
 

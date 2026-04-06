@@ -9,43 +9,23 @@
                                  government_departments, note)
         VALUES (#{mergeKey}, #{dateOfOrder}::timestamptz, #{title}, #{amount},
                 #{governmentDepartments}, #{note})
-        ON CONFLICT (merge_key) DO UPDATE SET date_of_order          = EXCLUDED.date_of_order,
-                                              title                  = EXCLUDED.title,
-                                              amount                 = EXCLUDED.amount,
-                                              government_departments = EXCLUDED.government_departments,
-                                              note                   = EXCLUDED.note
-        WHERE (
-               procurement.date_of_order,
-               procurement.title,
-               procurement.amount,
-               procurement.government_departments,
-               procurement.note
-                  ) IS DISTINCT FROM (
-                                      EXCLUDED.date_of_order,
-                                      EXCLUDED.title,
-                                      EXCLUDED.amount,
-                                      EXCLUDED.government_departments,
-                                      EXCLUDED.note
-            )
+        ON CONFLICT (merge_key) DO NOTHING
     </update>
 
     <update id="upsertCompanyProcurement">
-        INSERT INTO company_procurement (
-            company_id,
-            procurement_id,
-            inserted_at,
-            updated_at,
-            deleted,
-            sync_id
-        )
+        INSERT INTO company_procurement (company_id,
+                                         procurement_id,
+                                         inserted_at,
+                                         updated_at,
+                                         deleted,
+                                         sync_id)
         SELECT c.company_id, p.procurement_id, now(), now(), false, #{syncId}::uuid
         FROM company c
                  JOIN procurement p ON p.merge_key = #{dto.mergeKey}
         WHERE c.corporate_number = #{dto.corporateNumber}
-        ON CONFLICT (company_id, procurement_id) DO UPDATE SET
-                                                               deleted = false,
+        ON CONFLICT (company_id, procurement_id) DO UPDATE SET deleted    = false,
                                                                updated_at = now(),
-                                                               sync_id = EXCLUDED.sync_id
+                                                               sync_id    = EXCLUDED.sync_id
         WHERE company_procurement.deleted IS DISTINCT FROM false
            OR company_procurement.sync_id IS DISTINCT FROM EXCLUDED.sync_id
     </update>

@@ -9,46 +9,23 @@
                                   category, government_departments, note)
         VALUES (#{mergeKey}, #{dateOfCommendation}::date, #{title}, #{target},
                 #{category}, #{governmentDepartments}, #{note})
-        ON CONFLICT (merge_key) DO UPDATE SET date_of_commendation   = EXCLUDED.date_of_commendation,
-                                              title                  = EXCLUDED.title,
-                                              target                 = EXCLUDED.target,
-                                              category               = EXCLUDED.category,
-                                              government_departments = EXCLUDED.government_departments,
-                                              note                   = EXCLUDED.note
-        WHERE (
-               commendation.date_of_commendation,
-               commendation.title,
-               commendation.target,
-               commendation.category,
-               commendation.government_departments,
-               commendation.note
-                  ) IS DISTINCT FROM (
-                                      EXCLUDED.date_of_commendation,
-                                      EXCLUDED.title,
-                                      EXCLUDED.target,
-                                      EXCLUDED.category,
-                                      EXCLUDED.government_departments,
-                                      EXCLUDED.note
-            )
+        ON CONFLICT (merge_key) DO NOTHING
     </update>
 
     <update id="upsertCompanyCommendation">
-        INSERT INTO company_commendation (
-            company_id,
-            commendation_id,
-            inserted_at,
-            updated_at,
-            deleted,
-            sync_id
-        )
+        INSERT INTO company_commendation (company_id,
+                                          commendation_id,
+                                          inserted_at,
+                                          updated_at,
+                                          deleted,
+                                          sync_id)
         SELECT c.company_id, e.commendation_id, now(), now(), false, #{syncId}::uuid
         FROM company c
                  JOIN commendation e ON e.merge_key = #{dto.mergeKey}
         WHERE c.corporate_number = #{dto.corporateNumber}
-        ON CONFLICT (company_id, commendation_id) DO UPDATE SET
-                                                                deleted = false,
+        ON CONFLICT (company_id, commendation_id) DO UPDATE SET deleted    = false,
                                                                 updated_at = now(),
-                                                                sync_id = EXCLUDED.sync_id
+                                                                sync_id    = EXCLUDED.sync_id
         WHERE company_commendation.deleted IS DISTINCT FROM false
            OR company_commendation.sync_id IS DISTINCT FROM EXCLUDED.sync_id
     </update>

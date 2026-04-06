@@ -14,18 +14,7 @@
                  LEFT JOIN base_info bi ON bi.merge_key = #{baseInfoMergeKey}
                  LEFT JOIN women_activity_info wa ON wa.merge_key = #{womenActivityMergeKey}
                  LEFT JOIN compatibility_of_childcare_and_work cc ON cc.merge_key = #{compatibilityMergeKey}
-        ON CONFLICT (merge_key) DO UPDATE SET base_info                           = EXCLUDED.base_info,
-                                              women_activity_info                 = EXCLUDED.women_activity_info,
-                                              compatibility_of_childcare_and_work = EXCLUDED.compatibility_of_childcare_and_work
-        WHERE (
-               workplace_info.base_info,
-               workplace_info.women_activity_info,
-               workplace_info.compatibility_of_childcare_and_work
-                  ) IS DISTINCT FROM (
-                                      EXCLUDED.base_info,
-                                      EXCLUDED.women_activity_info,
-                                      EXCLUDED.compatibility_of_childcare_and_work
-            )
+        ON CONFLICT (merge_key) DO NOTHING
     </update>
 
     <update id="upsertCompanyWorkplaceInfo">
@@ -39,7 +28,7 @@
     <update id="clearCompanyWorkplaceInfo">
         UPDATE company
         SET workplace_info = null,
-            updated_at = now()
+            updated_at     = now()
         WHERE company.corporate_number = #{corporateNumber}
           AND company.workplace_info IS NOT NULL
     </update>
