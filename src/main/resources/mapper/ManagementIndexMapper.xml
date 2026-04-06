@@ -29,7 +29,7 @@
                                       total_assets_summary_of_business_results_unit_ref,
                                       number_of_employees,
                                       number_of_employees_unit_ref)
-        VALUES (#{mergeKey}, #{period}::integer,
+        VALUES (#{mergeKey}, #{period},
                 #{netSalesSummaryOfBusinessResults},
                 #{netSalesSummaryOfBusinessResultsUnitRef},
                 #{operatingRevenue1SummaryOfBusinessResults},

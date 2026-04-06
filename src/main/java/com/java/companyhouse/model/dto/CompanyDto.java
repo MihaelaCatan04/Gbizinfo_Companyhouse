@@ -19,6 +19,7 @@ public class CompanyDto {
     private String postalCode;
     private String location;
     private String process;
+    @Size(min = 1, max = 1, message = "aggregatedYear must be 1 characters long")
     private String aggregatedYear;
     private String status;
     private LocalDate closeDate;

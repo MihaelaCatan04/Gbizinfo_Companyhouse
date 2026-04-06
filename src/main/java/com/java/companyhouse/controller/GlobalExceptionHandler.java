@@ -32,6 +32,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleGeneral(Exception ex) {
+        log.error("Unexpected error", ex);
         return new ErrorResponse("INTERNAL_ERROR", List.of("An unexpected error occurred"));
     }
 }

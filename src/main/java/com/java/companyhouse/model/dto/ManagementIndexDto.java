@@ -18,7 +18,7 @@ public class ManagementIndexDto {
     private String financeMergeKey;
     @NotBlank(message = "mergeKey is required")
     private String mergeKey;
-    private String period;
+    private int period;
     private Long netSalesSummaryOfBusinessResults;
     private String netSalesSummaryOfBusinessResultsUnitRef;
     private Long operatingRevenue1SummaryOfBusinessResults;

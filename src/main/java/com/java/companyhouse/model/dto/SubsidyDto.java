@@ -19,7 +19,7 @@ public class SubsidyDto {
     private String mergeKey;
     private LocalDate dateOfApproval;
     private String title;
-    private String amount;
+    private Long amount;
     private String target;
     private String governmentDepartments;
 }

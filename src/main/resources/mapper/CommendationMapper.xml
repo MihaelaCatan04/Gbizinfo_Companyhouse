@@ -7,7 +7,7 @@
     <update id="upsertCommendation">
         INSERT INTO commendation (merge_key, date_of_commendation, title, target,
                                   category, government_departments, note)
-        VALUES (#{mergeKey}, #{dateOfCommendation}::date, #{title}, #{target},
+        VALUES (#{mergeKey}, #{dateOfCommendation}, #{title}, #{target},
                 #{category}, #{governmentDepartments}, #{note})
         ON CONFLICT (merge_key) DO NOTHING
     </update>
@@ -32,26 +32,22 @@
 
     <update id="softDeleteAllCompanyCommendations">
         UPDATE company_commendation cc
-        SET deleted = true,
+        SET deleted    = true,
             updated_at = now()
         WHERE cc.deleted = false
-          AND cc.company_id = (
-            SELECT c.company_id
-            FROM company c
-            WHERE c.corporate_number = #{corporateNumber}
-        )
+          AND cc.company_id = (SELECT c.company_id
+                               FROM company c
+                               WHERE c.corporate_number = #{corporateNumber})
     </update>
 
     <update id="softDeleteMissingCompanyCommendations">
         UPDATE company_commendation cc
-        SET deleted = true,
+        SET deleted    = true,
             updated_at = now()
         WHERE cc.deleted = false
-          AND cc.company_id = (
-            SELECT c.company_id
-            FROM company c
-            WHERE c.corporate_number = #{corporateNumber}
-        )
+          AND cc.company_id = (SELECT c.company_id
+                               FROM company c
+                               WHERE c.corporate_number = #{corporateNumber})
           AND cc.sync_id IS DISTINCT FROM #{syncId}::uuid
     </update>
 

@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 public class CommendationDto {
@@ -15,7 +17,7 @@ public class CommendationDto {
     private String corporateNumber;
     @NotBlank(message = "mergeKey is required")
     private String mergeKey;
-    private String dateOfCommendation;
+    private LocalDate dateOfCommendation;
     private String title;
     private String target;
     private String category;

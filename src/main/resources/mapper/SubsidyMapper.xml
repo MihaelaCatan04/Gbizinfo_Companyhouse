@@ -7,7 +7,7 @@
     <update id="upsertSubsidy">
         INSERT INTO subsidy (merge_key, date_of_approval, title, amount,
                              target, government_departments)
-        VALUES (#{mergeKey}, #{dateOfApproval}, #{title}, #{amount}::bigint,
+        VALUES (#{mergeKey}, #{dateOfApproval}, #{title}, #{amount},
                 #{target}, #{governmentDepartments})
         ON CONFLICT (merge_key) DO NOTHING
     </update>
@@ -32,26 +32,22 @@
 
     <update id="softDeleteAllCompanySubsidies">
         UPDATE company_subsidy cs
-        SET deleted = true,
+        SET deleted    = true,
             updated_at = now()
         WHERE cs.deleted = false
-          AND cs.company_id = (
-            SELECT c.company_id
-            FROM company c
-            WHERE c.corporate_number = #{corporateNumber}
-        )
+          AND cs.company_id = (SELECT c.company_id
+                               FROM company c
+                               WHERE c.corporate_number = #{corporateNumber})
     </update>
 
     <update id="softDeleteMissingCompanySubsidies">
         UPDATE company_subsidy cs
-        SET deleted = true,
+        SET deleted    = true,
             updated_at = now()
         WHERE cs.deleted = false
-          AND cs.company_id = (
-            SELECT c.company_id
-            FROM company c
-            WHERE c.corporate_number = #{corporateNumber}
-        )
+          AND cs.company_id = (SELECT c.company_id
+                               FROM company c
+                               WHERE c.corporate_number = #{corporateNumber})
           AND cs.sync_id IS DISTINCT FROM #{syncId}::uuid
     </update>
 
