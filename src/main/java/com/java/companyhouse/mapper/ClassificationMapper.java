@@ -14,4 +14,6 @@ public interface ClassificationMapper {
     void softDeleteAllPatentClassifications(@Param("corporateNumber") String corporateNumber, @Param("patentMergeKey") String patentMergeKey);
 
     void softDeleteMissingPatentClassifications(@Param("corporateNumber") String corporateNumber, @Param("patentMergeKey") String patentMergeKey, @Param("syncId") String syncId);
+
+    void softDeleteOrphanedPatentClassifications(@Param("corporateNumber") String corporateNumber);
 }

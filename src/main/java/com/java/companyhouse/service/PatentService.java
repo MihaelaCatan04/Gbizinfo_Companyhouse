@@ -11,11 +11,13 @@ public class PatentService extends AbstractBatchService<PatentDto> {
 
     private final PatentMapper patentMapper;
     private final AdvisoryLockMapper advisoryLockMapper;
+    private final ClassificationService classificationService;
 
-    public PatentService(PatentMapper patentMapper, AdvisoryLockMapper advisoryLockMapper, TransactionTemplate transactionTemplate) {
+    public PatentService(PatentMapper patentMapper, AdvisoryLockMapper advisoryLockMapper, TransactionTemplate transactionTemplate, ClassificationService classificationService) {
         super(transactionTemplate);
         this.patentMapper = patentMapper;
         this.advisoryLockMapper = advisoryLockMapper;
+        this.classificationService = classificationService;
     }
 
     @Override
@@ -37,5 +39,6 @@ public class PatentService extends AbstractBatchService<PatentDto> {
     @Override
     protected void cleanup(String corporateNumber, String syncId) {
         patentMapper.softDeleteMissingCompanyPatents(corporateNumber, syncId);
+        classificationService.deleteOrphanedPatentClassifications(corporateNumber);
     }
 }

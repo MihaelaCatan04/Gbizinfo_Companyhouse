@@ -14,4 +14,6 @@ public interface ManagementIndexMapper {
     void softDeleteAllFinanceManagementIndexes(@Param("corporateNumber") String corporateNumber, @Param("financeMergeKey") String financeMergeKey);
 
     void softDeleteMissingFinanceManagementIndexes(@Param("corporateNumber") String corporateNumber, @Param("financeMergeKey") String financeMergeKey, @Param("syncId") String syncId);
+
+    void softDeleteOrphanedFinanceManagementIndexes(@Param("corporateNumber") String corporateNumber);
 }

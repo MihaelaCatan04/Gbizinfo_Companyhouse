@@ -48,4 +48,8 @@ public class ClassificationService extends AbstractNestedBatchService<PatentClas
             classificationMapper.upsertPatentClassification(dto.getMergeKey(), parentMergeKey, corporateNumber, syncId);
         }
     }
+
+    public void deleteOrphanedPatentClassifications(String corporateNumber) {
+        classificationMapper.softDeleteOrphanedPatentClassifications(corporateNumber);
+    }
 }

@@ -60,4 +60,16 @@
           AND fs.sync_id IS DISTINCT FROM #{syncId}::uuid
     </update>
 
+    <update id="softDeleteOrphanedFinanceShareholders">
+        UPDATE finance_shareholder fs
+        SET deleted    = true,
+            updated_at = now()
+        FROM company c
+                 JOIN company_finance cf ON cf.company_id = c.company_id
+        WHERE fs.company_id = c.company_id
+          AND fs.finance_id = cf.finance_id
+          AND c.corporate_number = #{corporateNumber}
+          AND cf.deleted = true
+          AND fs.deleted = false
+    </update>
 </mapper>

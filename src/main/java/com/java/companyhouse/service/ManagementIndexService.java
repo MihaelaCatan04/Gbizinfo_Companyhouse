@@ -48,4 +48,8 @@ public class ManagementIndexService extends AbstractNestedBatchService<FinanceMa
             managementIndexMapper.upsertFinanceManagement(dto.getMergeKey(), parentMergeKey, corporateNumber, syncId);
         }
     }
+
+    public void deleteOrphanedFinanceManagementIndexes(String corporateNumber) {
+        managementIndexMapper.softDeleteOrphanedFinanceManagementIndexes(corporateNumber);
+    }
 }

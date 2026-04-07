@@ -57,31 +57,26 @@
         ON CONFLICT (merge_key) DO NOTHING
     </update>
 
-    <!-- Three-way insert: company + finance + management_index -->
     <update id="upsertFinanceManagement">
-        INSERT INTO finance_management (
-            company_id,
-            finance_id,
-            management_index_id,
-            inserted_at,
-            updated_at,
-            deleted,
-            sync_id
-        )
-        SELECT
-            c.company_id,
-            f.finance_id,
-            m.management_index_id,
-            now(),
-            now(),
-            false,
-            #{syncId}::uuid
+        INSERT INTO finance_management (company_id,
+                                        finance_id,
+                                        management_index_id,
+                                        inserted_at,
+                                        updated_at,
+                                        deleted,
+                                        sync_id)
+        SELECT c.company_id,
+               f.finance_id,
+               m.management_index_id,
+               now(),
+               now(),
+               false,
+               #{syncId}::uuid
         FROM company c
                  JOIN finance f ON f.merge_key = #{financeMergeKey}
                  JOIN management_index m ON m.merge_key = #{mergeKey}
         WHERE c.corporate_number = #{corporateNumber}
-        ON CONFLICT (company_id, finance_id, management_index_id) DO UPDATE SET
-                                                                                deleted    = false,
+        ON CONFLICT (company_id, finance_id, management_index_id) DO UPDATE SET deleted    = false,
                                                                                 updated_at = now(),
                                                                                 sync_id    = EXCLUDED.sync_id
         WHERE finance_management.deleted IS DISTINCT FROM false
@@ -111,6 +106,19 @@
           AND c.corporate_number = #{corporateNumber}
           AND fm.deleted = false
           AND fm.sync_id IS DISTINCT FROM #{syncId}::uuid
+    </update>
+
+    <update id="softDeleteOrphanedFinanceManagementIndexes">
+        UPDATE finance_management fm
+        SET deleted    = true,
+            updated_at = now()
+        FROM company c
+                 JOIN company_finance cf ON cf.company_id = c.company_id
+        WHERE fm.company_id = c.company_id
+          AND fm.finance_id = cf.finance_id
+          AND c.corporate_number = #{corporateNumber}
+          AND cf.deleted = true
+          AND fm.deleted = false
     </update>
 
 </mapper>

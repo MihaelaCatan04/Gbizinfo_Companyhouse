@@ -14,4 +14,6 @@ public interface MajorShareholderMapper {
     void softDeleteAllFinanceShareholders(@Param("corporateNumber") String corporateNumber, @Param("financeMergeKey") String financeMergeKey);
 
     void softDeleteMissingFinanceShareholders(@Param("corporateNumber") String corporateNumber, @Param("financeMergeKey") String financeMergeKey, @Param("syncId") String syncId);
+
+    void softDeleteOrphanedFinanceShareholders(@Param("corporateNumber") String corporateNumber);
 }

@@ -48,4 +48,8 @@ public class MajorShareholderService extends AbstractNestedBatchService<FinanceM
             majorShareholderMapper.upsertFinanceShareholder(dto.getMergeKey(), parentMergeKey, corporateNumber, syncId);
         }
     }
+
+    public void deleteOrphanedFinanceShareholders(String corporateNumber) {
+        majorShareholderMapper.softDeleteOrphanedFinanceShareholders(corporateNumber);
+    }
 }

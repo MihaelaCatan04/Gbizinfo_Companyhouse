@@ -60,4 +60,16 @@
           AND pc.sync_id IS DISTINCT FROM #{syncId}::uuid
     </update>
 
+    <update id="softDeleteOrphanedPatentClassifications">
+        UPDATE patent_classification pc
+        SET deleted    = true,
+            updated_at = now()
+        FROM company_patent cp
+                 JOIN company c ON c.company_id = cp.company_id
+        WHERE pc.company_id = cp.company_id
+          AND pc.patent_id = cp.patent_id
+          AND c.corporate_number = #{corporateNumber}
+          AND cp.deleted = true
+          AND pc.deleted = false
+    </update>
 </mapper>

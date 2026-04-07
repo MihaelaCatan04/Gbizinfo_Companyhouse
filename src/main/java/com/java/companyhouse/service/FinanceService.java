@@ -11,11 +11,15 @@ public class FinanceService extends AbstractBatchService<FinanceDto> {
 
     private final FinanceMapper financeMapper;
     private final AdvisoryLockMapper advisoryLockMapper;
+    private final MajorShareholderService majorShareholderService;
+    private final ManagementIndexService managementIndexService;
 
-    public FinanceService(FinanceMapper financeMapper, AdvisoryLockMapper advisoryLockMapper, TransactionTemplate transactionTemplate) {
+    public FinanceService(FinanceMapper financeMapper, AdvisoryLockMapper advisoryLockMapper, TransactionTemplate transactionTemplate, MajorShareholderService majorShareholderService, ManagementIndexService managementIndexService) {
         super(transactionTemplate);
         this.financeMapper = financeMapper;
         this.advisoryLockMapper = advisoryLockMapper;
+        this.majorShareholderService = majorShareholderService;
+        this.managementIndexService = managementIndexService;
     }
 
     @Override
@@ -37,5 +41,7 @@ public class FinanceService extends AbstractBatchService<FinanceDto> {
     @Override
     protected void cleanup(String corporateNumber, String syncId) {
         financeMapper.softDeleteMissingCompanyFinances(corporateNumber, syncId);
+        majorShareholderService.deleteOrphanedFinanceShareholders(corporateNumber);
+        managementIndexService.deleteOrphanedFinanceManagementIndexes(corporateNumber);
     }
 }
