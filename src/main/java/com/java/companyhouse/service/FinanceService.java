@@ -30,6 +30,8 @@ public class FinanceService extends AbstractBatchService<FinanceDto> {
     @Override
     protected void onEmpty(String corporateNumber) {
         financeMapper.softDeleteAllCompanyFinances(corporateNumber);
+        majorShareholderService.deleteOrphanedFinanceShareholders(corporateNumber);
+        managementIndexService.deleteOrphanedFinanceManagementIndexes(corporateNumber);
     }
 
     @Override

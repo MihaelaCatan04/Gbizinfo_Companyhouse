@@ -28,6 +28,7 @@ public class PatentService extends AbstractBatchService<PatentDto> {
     @Override
     protected void onEmpty(String corporateNumber) {
         patentMapper.softDeleteAllCompanyPatents(corporateNumber);
+        classificationService.deleteOrphanedPatentClassifications(corporateNumber);
     }
 
     @Override

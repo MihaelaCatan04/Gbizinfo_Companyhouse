@@ -64,12 +64,12 @@
         UPDATE finance_shareholder fs
         SET deleted    = true,
             updated_at = now()
-        FROM company c
-                 JOIN company_finance cf ON cf.company_id = c.company_id
-        WHERE fs.company_id = c.company_id
-          AND fs.finance_id = cf.finance_id
-          AND c.corporate_number = #{corporateNumber}
+        FROM company_finance cf
+                 JOIN company c ON true
+        WHERE fs.finance_id = cf.finance_id
+          AND c.company_id = fs.company_id
           AND cf.deleted = true
           AND fs.deleted = false
+          AND c.corporate_number = #{corporateNumber}
     </update>
 </mapper>
