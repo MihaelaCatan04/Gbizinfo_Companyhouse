@@ -42,4 +42,9 @@ public class PatentService extends AbstractBatchService<PatentDto> {
         patentMapper.softDeleteMissingCompanyPatents(corporateNumber, syncId);
         classificationService.deleteOrphanedPatentClassifications(corporateNumber);
     }
+
+    @Override
+    protected String getCorporateNumber(PatentDto entity) {
+        return entity.getCorporateNumber();
+    }
 }

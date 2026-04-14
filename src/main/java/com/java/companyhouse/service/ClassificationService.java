@@ -52,4 +52,14 @@ public class ClassificationService extends AbstractNestedBatchService<PatentClas
     public void deleteOrphanedPatentClassifications(String corporateNumber) {
         classificationMapper.softDeleteOrphanedPatentClassifications(corporateNumber);
     }
+
+    @Override
+    protected String getCorporateNumber(ClassificationDto entity) {
+        return entity.getCorporateNumber();
+    }
+
+    @Override
+    protected String getParentMergeKey(ClassificationDto entity) {
+        return entity.getPatentMergeKey();
+    }
 }

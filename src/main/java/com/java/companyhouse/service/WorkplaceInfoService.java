@@ -33,4 +33,9 @@ public class WorkplaceInfoService extends AbstractBatchService<WorkplaceInfoDto>
         workplaceInfoMapper.upsertWorkplaceInfo(entity);
         workplaceInfoMapper.upsertCompanyWorkplaceInfo(entity);
     }
+
+    @Override
+    protected String getCorporateNumber(WorkplaceInfoDto entity) {
+        return entity.getCorporateNumber();
+    }
 }

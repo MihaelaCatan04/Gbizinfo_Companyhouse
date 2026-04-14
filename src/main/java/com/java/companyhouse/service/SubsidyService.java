@@ -38,4 +38,9 @@ public class SubsidyService extends AbstractBatchService<SubsidyDto> {
     protected void cleanup(String corporateNumber, String syncId) {
         subsidyMapper.softDeleteMissingCompanySubsidies(corporateNumber, syncId);
     }
+
+    @Override
+    protected String getCorporateNumber(SubsidyDto entity) {
+        return entity.getCorporateNumber();
+    }
 }

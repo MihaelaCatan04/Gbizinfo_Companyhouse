@@ -52,4 +52,14 @@ public class ManagementIndexService extends AbstractNestedBatchService<FinanceMa
     public void deleteOrphanedFinanceManagementIndexes(String corporateNumber) {
         managementIndexMapper.softDeleteOrphanedFinanceManagementIndexes(corporateNumber);
     }
+
+    @Override
+    protected String getCorporateNumber(ManagementIndexDto entity) {
+        return entity.getCorporateNumber();
+    }
+
+    @Override
+    protected String getParentMergeKey(ManagementIndexDto entity) {
+        return entity.getFinanceMergeKey();
+    }
 }

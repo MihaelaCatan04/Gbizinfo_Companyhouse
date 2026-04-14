@@ -38,4 +38,9 @@ public class ProcurementService extends AbstractBatchService<ProcurementDto> {
     protected void cleanup(String corporateNumber, String syncId) {
         procurementMapper.softDeleteMissingCompanyProcurements(corporateNumber, syncId);
     }
+
+    @Override
+    protected String getCorporateNumber(ProcurementDto entity) {
+        return entity.getCorporateNumber();
+    }
 }

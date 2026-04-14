@@ -52,4 +52,14 @@ public class MajorShareholderService extends AbstractNestedBatchService<FinanceM
     public void deleteOrphanedFinanceShareholders(String corporateNumber) {
         majorShareholderMapper.softDeleteOrphanedFinanceShareholders(corporateNumber);
     }
+
+    @Override
+    protected String getCorporateNumber(MajorShareholderDto entity) {
+        return entity.getCorporateNumber();
+    }
+
+    @Override
+    protected String getParentMergeKey(MajorShareholderDto entity) {
+        return entity.getFinanceMergeKey();
+    }
 }

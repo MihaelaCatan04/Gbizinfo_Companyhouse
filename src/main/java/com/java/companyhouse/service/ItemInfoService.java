@@ -38,4 +38,9 @@ public class ItemInfoService extends AbstractBatchService<ItemInfoDto> {
     protected void cleanup(String corporateNumber, String syncId) {
         itemInfoMapper.softDeleteMissingCompanyItems(corporateNumber, syncId);
     }
+
+    @Override
+    protected String getCorporateNumber(ItemInfoDto entity) {
+        return entity.getCorporateNumber();
+    }
 }

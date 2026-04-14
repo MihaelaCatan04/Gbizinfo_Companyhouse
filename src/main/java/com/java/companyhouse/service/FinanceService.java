@@ -46,4 +46,9 @@ public class FinanceService extends AbstractBatchService<FinanceDto> {
         majorShareholderService.deleteOrphanedFinanceShareholders(corporateNumber);
         managementIndexService.deleteOrphanedFinanceManagementIndexes(corporateNumber);
     }
+
+    @Override
+    protected String getCorporateNumber(FinanceDto entity) {
+        return entity.getCorporateNumber();
+    }
 }

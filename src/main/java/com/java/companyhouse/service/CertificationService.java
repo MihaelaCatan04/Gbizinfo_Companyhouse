@@ -38,4 +38,9 @@ public class CertificationService extends AbstractBatchService<CertificationDto>
     protected void cleanup(String corporateNumber, String syncId) {
         certificationMapper.softDeleteMissingCompanyCertifications(corporateNumber, syncId);
     }
+
+    @Override
+    protected String getCorporateNumber(CertificationDto entity) {
+        return entity.getCorporateNumber();
+    }
 }

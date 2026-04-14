@@ -29,10 +29,19 @@ public class GlobalExceptionHandler {
         return new ErrorResponse("VALIDATION_ERROR", errors);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleIllegalArgument(IllegalArgumentException ex) {
+        log.warn("Invalid request argument: {}", ex.getMessage());
+        return new ErrorResponse("INVALID_ARGUMENT", List.of(ex.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleGeneral(Exception ex) {
         log.error("Unexpected error", ex);
         return new ErrorResponse("INTERNAL_ERROR", List.of("An unexpected error occurred"));
     }
+
+
 }

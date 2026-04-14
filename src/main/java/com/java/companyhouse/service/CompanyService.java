@@ -27,4 +27,9 @@ public class CompanyService extends AbstractBatchService<CompanyDto> {
     protected void upsert(CompanyDto entity, String syncId) {
         companyMapper.upsertCompany(entity);
     }
+
+    @Override
+    protected String getCorporateNumber(CompanyDto entity) {
+        return entity.getCorporateNumber();
+    }
 }

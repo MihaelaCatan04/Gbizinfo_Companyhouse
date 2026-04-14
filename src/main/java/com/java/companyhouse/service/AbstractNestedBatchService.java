@@ -27,6 +27,17 @@ public abstract class AbstractNestedBatchService<S extends NestedSnapshot<T>, T>
         String parentMergeKey = snapshot.getParentMergeKey();
         List<T> raw = snapshot.getItems() == null ? Collections.emptyList() : snapshot.getItems();
 
+        for (T item : raw) {
+            String entityCorporateNumber = getCorporateNumber(item);
+            String entityParentMergeKey = getParentMergeKey(item);
+            if (entityCorporateNumber != null && !entityCorporateNumber.equals(corporateNumber)) {
+                throw new IllegalArgumentException("Entity corporateNumber " + entityCorporateNumber + " does not match snapshot corporateNumber " + corporateNumber);
+            }
+            if (entityParentMergeKey != null && !entityParentMergeKey.equals(parentMergeKey)) {
+                throw new IllegalArgumentException("Entity parentMergeKey " + entityParentMergeKey + " does not match snapshot parentMergeKey " + parentMergeKey);
+            }
+        }
+
         acquireLock(corporateNumber);
 
         if (raw.isEmpty()) {
@@ -57,4 +68,8 @@ public abstract class AbstractNestedBatchService<S extends NestedSnapshot<T>, T>
     protected abstract void upsertAll(List<T> items, String parentMergeKey, String corporateNumber, String syncId);
 
     protected abstract void cleanup(String corporateNumber, String parentMergeKey, String syncId);
+
+    protected abstract String getCorporateNumber(T item);
+
+    protected abstract String getParentMergeKey(T item);
 }

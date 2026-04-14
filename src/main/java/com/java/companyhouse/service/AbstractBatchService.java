@@ -27,6 +27,13 @@ public abstract class AbstractBatchService<T> {
         String corporateNumber = snapshot.getCorporateNumber();
         List<T> entities = snapshot.getEntities() == null ? Collections.emptyList() : snapshot.getEntities();
 
+        for (T entity : entities) {
+            String entityCorporateNumber = getCorporateNumber(entity);
+            if (entityCorporateNumber != null && !entityCorporateNumber.equals(corporateNumber)) {
+                throw new IllegalArgumentException("Entity corporateNumber " + entityCorporateNumber + " does not match snapshot corporateNumber " + corporateNumber);
+            }
+        }
+
         acquireLock(corporateNumber);
 
         if (entities.isEmpty()) {
@@ -51,4 +58,6 @@ public abstract class AbstractBatchService<T> {
 
     protected void cleanup(String corporateNumber, String syncId) {
     }
+
+    protected abstract String getCorporateNumber(T entity);
 }

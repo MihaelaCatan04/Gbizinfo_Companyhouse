@@ -27,4 +27,9 @@ public class BaseInfoService extends AbstractBatchService<BaseInfoDto> {
     protected void upsert(BaseInfoDto entity, String syncId) {
         baseInfoMapper.upsertBaseInfo(entity);
     }
+
+    @Override
+    protected String getCorporateNumber(BaseInfoDto entity) {
+        return entity.getCorporateNumber();
+    }
 }

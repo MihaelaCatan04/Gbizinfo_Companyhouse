@@ -38,4 +38,9 @@ public class CommendationService extends AbstractBatchService<CommendationDto> {
     protected void cleanup(String corporateNumber, String syncId) {
         commendationMapper.softDeleteMissingCompanyCommendations(corporateNumber, syncId);
     }
+
+    @Override
+    protected String getCorporateNumber(CommendationDto entity) {
+        return entity.getCorporateNumber();
+    }
 }

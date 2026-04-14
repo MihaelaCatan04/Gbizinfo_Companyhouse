@@ -27,4 +27,9 @@ public class WomenActivityService extends AbstractBatchService<WomenActivityInfo
     protected void upsert(WomenActivityInfoDto entity, String syncId) {
         womenActivityMapper.upsertWomenActivity(entity);
     }
+
+    @Override
+    protected String getCorporateNumber(WomenActivityInfoDto entity) {
+        return entity.getCorporateNumber();
+    }
 }

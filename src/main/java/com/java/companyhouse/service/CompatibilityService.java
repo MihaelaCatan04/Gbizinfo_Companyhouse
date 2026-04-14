@@ -27,4 +27,9 @@ public class CompatibilityService extends AbstractBatchService<CompatibilityOfCh
     protected void upsert(CompatibilityOfChildcareAndWorkDto entity, String syncId) {
         compatibilityMapper.upsertCompatibility(entity);
     }
+
+    @Override
+    protected String getCorporateNumber(CompatibilityOfChildcareAndWorkDto entity) {
+        return entity.getCorporateNumber();
+    }
 }
