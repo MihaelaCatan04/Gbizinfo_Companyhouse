@@ -48,16 +48,16 @@
     </update>
 
     <update id="softDeleteMissingFinanceShareholders">
-        UPDATE finance_shareholder fs
+        UPDATE finance_management fm
         SET deleted    = true,
             updated_at = now()
-        FROM company c
-                 JOIN finance f ON f.merge_key = #{financeMergeKey}
-        WHERE fs.company_id = c.company_id
-          AND fs.finance_id = f.finance_id
+        FROM company_finance cf
+                 JOIN company c ON c.company_id = cf.company_id
+        WHERE fm.finance_id = cf.finance_id
+          AND fm.company_id = cf.company_id
+          AND cf.deleted = true
+          AND fm.deleted = false
           AND c.corporate_number = #{corporateNumber}
-          AND fs.deleted = false
-          AND fs.sync_id IS DISTINCT FROM #{syncId}::uuid
     </update>
 
     <update id="softDeleteOrphanedFinanceShareholders">
@@ -65,9 +65,9 @@
         SET deleted    = true,
             updated_at = now()
         FROM company_finance cf
-                 JOIN company c ON true
+                 JOIN company c ON c.company_id = cf.company_id
         WHERE fs.finance_id = cf.finance_id
-          AND c.company_id = fs.company_id
+          AND fs.company_id = cf.company_id
           AND cf.deleted = true
           AND fs.deleted = false
           AND c.corporate_number = #{corporateNumber}

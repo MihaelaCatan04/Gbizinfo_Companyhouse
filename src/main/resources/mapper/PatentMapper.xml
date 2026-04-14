@@ -43,16 +43,16 @@
     </update>
 
     <update id="softDeleteMissingCompanyPatents">
-        UPDATE company_patent cp
-        SET deleted = true,
+        UPDATE patent_classification pc
+        SET deleted    = true,
             updated_at = now()
-        WHERE cp.deleted = false
-          AND cp.company_id = (
-            SELECT c.company_id
-            FROM company c
-            WHERE c.corporate_number = #{corporateNumber}
-        )
-          AND cp.sync_id IS DISTINCT FROM #{syncId}::uuid
+        FROM company_patent cp
+                 JOIN company c ON c.company_id = cp.company_id
+        WHERE pc.patent_id = cp.patent_id
+          AND pc.company_id = cp.company_id
+          AND cp.deleted = true
+          AND pc.deleted = false
+          AND c.corporate_number = #{corporateNumber}
     </update>
 
 </mapper>
