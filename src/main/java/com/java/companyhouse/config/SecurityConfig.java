@@ -30,7 +30,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(auth -> auth.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/error").permitAll()
 
-                .requestMatchers("/baseinfos/**", "/certifications/**", "/classifications/**", "/commendations/**", "/companies/**", "/compatibilities/**", "/finances/**", "/iteminfos/**", "/majorshareholders/**", "/managementindexes/**", "/patents/**", "/procurements/**", "/subsidies/**", "/womenactivities/**").authenticated()
+                .requestMatchers("/baseinfos/**", "/certifications/**", "/classifications/**", "/commendations/**", "/companies/**", "/compatibilities/**", "/finances/**", "/iteminfos/**", "/majorshareholders/**", "/managementindexes/**", "/patents/**", "/procurements/**", "/subsidies/**", "/womenactivities/**", "/workplaceinfos").authenticated()
 
                 .anyRequest().authenticated()).exceptionHandling(exception -> exception.authenticationEntryPoint((_, response, _) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Access Denied"))).httpBasic(Customizer.withDefaults());
 
