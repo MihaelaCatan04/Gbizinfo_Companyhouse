@@ -68,18 +68,4 @@ public abstract class CachedIdResolver {
             log.warn("Failed to write key={} to Redis, continuing", fullKey, e);
         }
     }
-
-    public void evict(String key) {
-        String fullKey = redisKeyPrefix + key;
-        l1Cache.invalidate(fullKey);
-        try {
-            redisTemplate.delete(fullKey);
-        } catch (Exception e) {
-            log.warn("Failed to evict key={} from Redis", fullKey, e);
-        }
-    }
-
-    public CacheStats stats() {
-        return l1Cache.stats();
-    }
 }
