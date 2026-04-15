@@ -1,36 +1,36 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
 <mapper namespace="com.java.companyhouse.mapper.WorkplaceInfoMapper">
 
     <update id="upsertWorkplaceInfo">
-        INSERT INTO workplace_info (merge_key, base_info, women_activity_info, compatibility_of_childcare_and_work)
-        SELECT #{mergeKey},
-               bi.base_info_id,
-               wa.women_activity_info_id,
-               cc.compatibility_of_childcare_and_work_id
-        FROM (SELECT 1) dummy
-                 LEFT JOIN base_info bi ON bi.merge_key = #{baseInfoMergeKey}
-                 LEFT JOIN women_activity_info wa ON wa.merge_key = #{womenActivityMergeKey}
-                 LEFT JOIN compatibility_of_childcare_and_work cc ON cc.merge_key = #{compatibilityMergeKey}
+        INSERT INTO workplace_info (merge_key,
+                                    base_info,
+                                    women_activity_info,
+                                    compatibility_of_childcare_and_work)
+        VALUES (#{mergeKey}, #{baseInfoId}, #{womenActivityInfoId}, #{compatibilityId})
         ON CONFLICT (merge_key) DO NOTHING
     </update>
 
     <update id="upsertCompanyWorkplaceInfo">
         UPDATE company
         SET workplace_info = #{mergeKey},
-            updated_at = now()
-        WHERE company.corporate_number = #{corporateNumber}
-          AND company.workplace_info IS DISTINCT FROM #{mergeKey}
+            updated_at     = now()
+        WHERE corporate_number = #{corporateNumber}
     </update>
 
     <update id="clearCompanyWorkplaceInfo">
         UPDATE company
         SET workplace_info = null,
             updated_at     = now()
-        WHERE company.corporate_number = #{corporateNumber}
-          AND company.workplace_info IS NOT NULL
+        WHERE corporate_number = #{corporateNumber}
+          AND workplace_info IS NOT NULL
     </update>
+
+    <select id="findCompanyWorkplaceInfo" resultType="java.lang.String">
+        SELECT workplace_info
+        FROM company
+        WHERE corporate_number = #{corporateNumber}
+    </select>
 
 </mapper>

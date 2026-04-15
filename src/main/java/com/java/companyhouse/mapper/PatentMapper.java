@@ -7,11 +7,13 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface PatentMapper {
 
-    void upsertPatent(PatentDto dto);
+    void upsertPatent(PatentDto entity);
 
-    void upsertCompanyPatent(@Param("dto") PatentDto dto, @Param("syncId") String syncId);
+    void upsertCompanyPatent(@Param("companyId") Long companyId, @Param("patentId") Long patentId, @Param("syncId") String syncId);
 
-    void softDeleteAllCompanyPatents(@Param("corporateNumber") String corporateNumber);
+    void softDeleteAllCompanyPatents(@Param("companyId") Long companyId);
 
-    void softDeleteMissingCompanyPatents(@Param("corporateNumber") String corporateNumber, @Param("syncId") String syncId);
+    void softDeleteMissingCompanyPatents(@Param("companyId") Long companyId, @Param("syncId") String syncId);
+
+    Long findPatentIdByMergeKey(String mergeKey);
 }

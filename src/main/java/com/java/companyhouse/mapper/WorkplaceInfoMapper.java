@@ -1,14 +1,16 @@
 package com.java.companyhouse.mapper;
 
-import com.java.companyhouse.model.dto.WorkplaceInfoDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface WorkplaceInfoMapper {
-    void upsertWorkplaceInfo(WorkplaceInfoDto dto);
 
-    void upsertCompanyWorkplaceInfo(WorkplaceInfoDto dto);
+    void upsertWorkplaceInfo(@Param("mergeKey") String mergeKey, @Param("baseInfoId") Long baseInfoId, @Param("womenActivityInfoId") Long womenActivityInfoId, @Param("compatibilityId") Long compatibilityId);
 
-    void clearCompanyWorkplaceInfo(@Param("corporateNumber") String corporateNumber);
+    void upsertCompanyWorkplaceInfo(@Param("mergeKey") String mergeKey, @Param("corporateNumber") String corporateNumber);
+
+    void clearCompanyWorkplaceInfo(String corporateNumber);
+
+    String findCompanyWorkplaceInfo(String corporateNumber);
 }

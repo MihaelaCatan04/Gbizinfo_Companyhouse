@@ -7,11 +7,13 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface SubsidyMapper {
 
-    void upsertSubsidy(SubsidyDto dto);
+    void upsertSubsidy(SubsidyDto entity);
 
-    void upsertCompanySubsidy(@Param("dto") SubsidyDto dto, @Param("syncId") String syncId);
+    void upsertCompanySubsidy(@Param("companyId") Long companyId, @Param("subsidyId") Long subsidyId, @Param("syncId") String syncId);
 
-    void softDeleteAllCompanySubsidies(@Param("corporateNumber") String corporateNumber);
+    void softDeleteAllCompanySubsidies(@Param("companyId") Long companyId);
 
-    void softDeleteMissingCompanySubsidies(@Param("corporateNumber") String corporateNumber, @Param("syncId") String syncId);
+    void softDeleteMissingCompanySubsidies(@Param("companyId") Long companyId, @Param("syncId") String syncId);
+
+    Long findSubsidyIdByMergeKey(String mergeKey);
 }

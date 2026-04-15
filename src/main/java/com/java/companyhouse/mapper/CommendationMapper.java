@@ -7,11 +7,13 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface CommendationMapper {
 
-    void upsertCommendation(CommendationDto dto);
+    void upsertCommendation(CommendationDto entity);
 
-    void upsertCompanyCommendation(@Param("dto") CommendationDto dto, @Param("syncId") String syncId);
+    void upsertCompanyCommendation(@Param("companyId") Long companyId, @Param("commendationId") Long commendationId, @Param("syncId") String syncId);
 
-    void softDeleteAllCompanyCommendations(@Param("corporateNumber") String corporateNumber);
+    void softDeleteAllCompanyCommendations(@Param("companyId") Long companyId);
 
-    void softDeleteMissingCompanyCommendations(@Param("corporateNumber") String corporateNumber, @Param("syncId") String syncId);
+    void softDeleteMissingCompanyCommendations(@Param("companyId") Long companyId, @Param("syncId") String syncId);
+
+    Long findCommendationIdByMergeKey(String mergeKey);
 }

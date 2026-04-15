@@ -1,5 +1,8 @@
 package com.java.companyhouse.service;
 
+import com.java.companyhouse.cache.CompanyIdResolver;
+import com.java.companyhouse.cache.FinanceIdResolver;
+import com.java.companyhouse.cache.MajorShareholderIdResolver;
 import com.java.companyhouse.mapper.AdvisoryLockMapper;
 import com.java.companyhouse.mapper.MajorShareholderMapper;
 import com.java.companyhouse.model.dto.MajorShareholderDto;
@@ -14,11 +17,17 @@ public class MajorShareholderService extends AbstractNestedBatchService<FinanceM
 
     private final MajorShareholderMapper majorShareholderMapper;
     private final AdvisoryLockMapper advisoryLockMapper;
+    private final CompanyIdResolver companyIdResolver;
+    private final FinanceIdResolver financeIdResolver;
+    private final MajorShareholderIdResolver majorShareholderIdResolver;
 
-    public MajorShareholderService(MajorShareholderMapper majorShareholderMapper, AdvisoryLockMapper advisoryLockMapper, TransactionTemplate transactionTemplate) {
+    public MajorShareholderService(MajorShareholderMapper majorShareholderMapper, AdvisoryLockMapper advisoryLockMapper, TransactionTemplate transactionTemplate, CompanyIdResolver companyIdResolver, FinanceIdResolver financeIdResolver, MajorShareholderIdResolver majorShareholderIdResolver) {
         super(transactionTemplate);
         this.majorShareholderMapper = majorShareholderMapper;
         this.advisoryLockMapper = advisoryLockMapper;
+        this.companyIdResolver = companyIdResolver;
+        this.financeIdResolver = financeIdResolver;
+        this.majorShareholderIdResolver = majorShareholderIdResolver;
     }
 
     @Override
@@ -33,24 +42,33 @@ public class MajorShareholderService extends AbstractNestedBatchService<FinanceM
 
     @Override
     protected void deleteAll(String corporateNumber, String parentMergeKey) {
-        majorShareholderMapper.softDeleteAllFinanceShareholders(corporateNumber, parentMergeKey);
+        Long companyId = companyIdResolver.resolve(corporateNumber);
+        Long financeId = financeIdResolver.resolve(parentMergeKey);
+        majorShareholderMapper.softDeleteAllFinanceShareholders(companyId, financeId);
     }
 
     @Override
     protected void cleanup(String corporateNumber, String parentMergeKey, String syncId) {
-        majorShareholderMapper.softDeleteMissingFinanceShareholders(corporateNumber, parentMergeKey, syncId);
+        Long companyId = companyIdResolver.resolve(corporateNumber);
+        Long financeId = financeIdResolver.resolve(parentMergeKey);
+        majorShareholderMapper.softDeleteMissingFinanceShareholders(companyId, financeId, syncId);
     }
 
     @Override
     protected void upsertAll(List<MajorShareholderDto> items, String parentMergeKey, String corporateNumber, String syncId) {
+        Long companyId = companyIdResolver.resolve(corporateNumber);
+        Long financeId = financeIdResolver.resolve(parentMergeKey);
+
         for (MajorShareholderDto dto : items) {
             majorShareholderMapper.upsertMajorShareholder(dto);
-            majorShareholderMapper.upsertFinanceShareholder(dto.getMergeKey(), parentMergeKey, corporateNumber, syncId);
+            Long majorShareholderId = majorShareholderIdResolver.resolve(dto.getMergeKey());
+            majorShareholderMapper.upsertFinanceShareholder(companyId, financeId, majorShareholderId, syncId);
         }
     }
 
     public void deleteOrphanedFinanceShareholders(String corporateNumber) {
-        majorShareholderMapper.softDeleteOrphanedFinanceShareholders(corporateNumber);
+        Long companyId = companyIdResolver.resolve(corporateNumber);
+        majorShareholderMapper.softDeleteOrphanedFinanceShareholders(companyId);
     }
 
     @Override

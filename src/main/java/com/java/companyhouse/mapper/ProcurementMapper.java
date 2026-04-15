@@ -7,11 +7,13 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface ProcurementMapper {
 
-    void upsertProcurement(ProcurementDto dto);
+    void upsertProcurement(ProcurementDto entity);
 
-    void upsertCompanyProcurement(@Param("dto") ProcurementDto dto, @Param("syncId") String syncId);
+    void upsertCompanyProcurement(@Param("companyId") Long companyId, @Param("procurementId") Long procurementId, @Param("syncId") String syncId);
 
-    void softDeleteAllCompanyProcurements(@Param("corporateNumber") String corporateNumber);
+    void softDeleteAllCompanyProcurements(@Param("companyId") Long companyId);
 
-    void softDeleteMissingCompanyProcurements(@Param("corporateNumber") String corporateNumber, @Param("syncId") String syncId);
+    void softDeleteMissingCompanyProcurements(@Param("companyId") Long companyId, @Param("syncId") String syncId);
+
+    Long findProcurementIdByMergeKey(String mergeKey);
 }

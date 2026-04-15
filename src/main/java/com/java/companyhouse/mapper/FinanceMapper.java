@@ -7,11 +7,13 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface FinanceMapper {
 
-    void upsertFinance(FinanceDto dto);
+    void upsertFinance(FinanceDto entity);
 
-    void upsertCompanyFinance(@Param("dto") FinanceDto dto, @Param("syncId") String syncId);
+    void upsertCompanyFinance(@Param("companyId") Long companyId, @Param("financeId") Long financeId, @Param("syncId") String syncId);
 
-    void softDeleteAllCompanyFinances(@Param("corporateNumber") String corporateNumber);
+    void softDeleteAllCompanyFinances(@Param("companyId") Long companyId);
 
-    void softDeleteMissingCompanyFinances(@Param("corporateNumber") String corporateNumber, @Param("syncId") String syncId);
+    void softDeleteMissingCompanyFinances(@Param("companyId") Long companyId, @Param("syncId") String syncId);
+
+    Long findFinanceIdByMergeKey(String mergeKey);
 }

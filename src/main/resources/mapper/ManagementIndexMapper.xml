@@ -65,47 +65,30 @@
                                         updated_at,
                                         deleted,
                                         sync_id)
-        SELECT c.company_id,
-               f.finance_id,
-               m.management_index_id,
-               now(),
-               now(),
-               false,
-               #{syncId}::uuid
-        FROM company c
-                 JOIN finance f ON f.merge_key = #{financeMergeKey}
-                 JOIN management_index m ON m.merge_key = #{mergeKey}
-        WHERE c.corporate_number = #{corporateNumber}
-        ON CONFLICT (company_id, finance_id, management_index_id) DO UPDATE SET deleted    = false,
-                                                                                updated_at = now(),
-                                                                                sync_id    = EXCLUDED.sync_id
-        WHERE finance_management.deleted IS DISTINCT FROM false
-           OR finance_management.sync_id IS DISTINCT FROM EXCLUDED.sync_id
+        VALUES (#{companyId}, #{financeId}, #{managementIndexId}, now(), now(), false, #{syncId}::uuid)
+        ON CONFLICT (company_id, finance_id, management_index_id) DO UPDATE
+            SET deleted    = false,
+                updated_at = now(),
+                sync_id    = EXCLUDED.sync_id
     </update>
 
     <update id="softDeleteAllFinanceManagementIndexes">
-        UPDATE finance_management fm
+        UPDATE finance_management
         SET deleted    = true,
             updated_at = now()
-        FROM company c
-                 JOIN finance f ON f.merge_key = #{financeMergeKey}
-        WHERE fm.company_id = c.company_id
-          AND fm.finance_id = f.finance_id
-          AND c.corporate_number = #{corporateNumber}
-          AND fm.deleted = false
+        WHERE deleted = false
+          AND company_id = #{companyId}
+          AND finance_id = #{financeId}
     </update>
 
     <update id="softDeleteMissingFinanceManagementIndexes">
-        UPDATE finance_management fm
+        UPDATE finance_management
         SET deleted    = true,
             updated_at = now()
-        FROM company c
-                 JOIN finance f ON f.merge_key = #{financeMergeKey}
-        WHERE fm.company_id = c.company_id
-          AND fm.finance_id = f.finance_id
-          AND c.corporate_number = #{corporateNumber}
-          AND fm.deleted = false
-          AND fm.sync_id IS DISTINCT FROM #{syncId}::uuid
+        WHERE deleted = false
+          AND company_id = #{companyId}
+          AND finance_id = #{financeId}
+          AND sync_id != #{syncId}::uuid
     </update>
 
     <update id="softDeleteOrphanedFinanceManagementIndexes">
@@ -113,11 +96,17 @@
         SET deleted    = true,
             updated_at = now()
         FROM company_finance cf
-                 JOIN company c ON true
         WHERE fm.finance_id = cf.finance_id
-          AND c.company_id = fm.company_id
+          AND fm.company_id = #{companyId}
+          AND cf.company_id = #{companyId}
           AND cf.deleted = true
           AND fm.deleted = false
-          AND c.corporate_number = #{corporateNumber}
     </update>
+
+    <select id="findManagementIndexIdByMergeKey" resultType="java.lang.Long">
+        SELECT management_index_id
+        FROM management_index
+        WHERE merge_key = #{mergeKey}
+    </select>
+
 </mapper>

@@ -6,4 +6,6 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface BaseInfoMapper {
     void upsertBaseInfo(BaseInfoDto dto);
+
+    Long findBaseInfoIdByMergeKey(String mergeKey);
 }

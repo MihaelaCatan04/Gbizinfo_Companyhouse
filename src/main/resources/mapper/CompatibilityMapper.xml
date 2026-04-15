@@ -18,4 +18,9 @@
         ON CONFLICT (merge_key) DO NOTHING
     </update>
 
+    <select id="findCompatibilityIdByMergeKey" resultType="java.lang.Long">
+        SELECT compatibility_of_childcare_and_work_id
+        FROM compatibility_of_childcare_and_work
+        WHERE merge_key = #{mergeKey}
+    </select>
 </mapper>

@@ -9,11 +9,13 @@ public interface ManagementIndexMapper {
 
     void upsertManagementIndex(ManagementIndexDto dto);
 
-    void upsertFinanceManagement(@Param("mergeKey") String mergeKey, @Param("financeMergeKey") String financeMergeKey, @Param("corporateNumber") String corporateNumber, @Param("syncId") String syncId);
+    void upsertFinanceManagement(@Param("companyId") Long companyId, @Param("financeId") Long financeId, @Param("managementIndexId") Long managementIndexId, @Param("syncId") String syncId);
 
-    void softDeleteAllFinanceManagementIndexes(@Param("corporateNumber") String corporateNumber, @Param("financeMergeKey") String financeMergeKey);
+    void softDeleteAllFinanceManagementIndexes(@Param("companyId") Long companyId, @Param("financeId") Long financeId);
 
-    void softDeleteMissingFinanceManagementIndexes(@Param("corporateNumber") String corporateNumber, @Param("financeMergeKey") String financeMergeKey, @Param("syncId") String syncId);
+    void softDeleteMissingFinanceManagementIndexes(@Param("companyId") Long companyId, @Param("financeId") Long financeId, @Param("syncId") String syncId);
 
-    void softDeleteOrphanedFinanceManagementIndexes(@Param("corporateNumber") String corporateNumber);
+    void softDeleteOrphanedFinanceManagementIndexes(@Param("companyId") Long companyId);
+
+    Long findManagementIndexIdByMergeKey(String mergeKey);
 }

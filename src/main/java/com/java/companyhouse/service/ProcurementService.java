@@ -1,5 +1,7 @@
 package com.java.companyhouse.service;
 
+import com.java.companyhouse.cache.CompanyIdResolver;
+import com.java.companyhouse.cache.ProcurementIdResolver;
 import com.java.companyhouse.mapper.AdvisoryLockMapper;
 import com.java.companyhouse.mapper.ProcurementMapper;
 import com.java.companyhouse.model.dto.ProcurementDto;
@@ -11,11 +13,15 @@ public class ProcurementService extends AbstractBatchService<ProcurementDto> {
 
     private final ProcurementMapper procurementMapper;
     private final AdvisoryLockMapper advisoryLockMapper;
+    private final CompanyIdResolver companyIdResolver;
+    private final ProcurementIdResolver procurementIdResolver;
 
-    public ProcurementService(ProcurementMapper procurementMapper, AdvisoryLockMapper advisoryLockMapper, TransactionTemplate transactionTemplate) {
+    public ProcurementService(ProcurementMapper procurementMapper, AdvisoryLockMapper advisoryLockMapper, TransactionTemplate transactionTemplate, CompanyIdResolver companyIdResolver, ProcurementIdResolver procurementIdResolver) {
         super(transactionTemplate);
         this.procurementMapper = procurementMapper;
         this.advisoryLockMapper = advisoryLockMapper;
+        this.companyIdResolver = companyIdResolver;
+        this.procurementIdResolver = procurementIdResolver;
     }
 
     @Override
@@ -25,18 +31,24 @@ public class ProcurementService extends AbstractBatchService<ProcurementDto> {
 
     @Override
     protected void onEmpty(String corporateNumber) {
-        procurementMapper.softDeleteAllCompanyProcurements(corporateNumber);
+        Long companyId = companyIdResolver.resolve(corporateNumber);
+        procurementMapper.softDeleteAllCompanyProcurements(companyId);
     }
 
     @Override
     protected void upsert(ProcurementDto entity, String syncId) {
         procurementMapper.upsertProcurement(entity);
-        procurementMapper.upsertCompanyProcurement(entity, syncId);
+
+        Long companyId = companyIdResolver.resolve(entity.getCorporateNumber());
+        Long procurementId = procurementIdResolver.resolve(entity.getMergeKey());
+
+        procurementMapper.upsertCompanyProcurement(companyId, procurementId, syncId);
     }
 
     @Override
     protected void cleanup(String corporateNumber, String syncId) {
-        procurementMapper.softDeleteMissingCompanyProcurements(corporateNumber, syncId);
+        Long companyId = companyIdResolver.resolve(corporateNumber);
+        procurementMapper.softDeleteMissingCompanyProcurements(companyId, syncId);
     }
 
     @Override

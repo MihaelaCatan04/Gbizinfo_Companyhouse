@@ -28,7 +28,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
-        http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(auth -> auth.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/error").permitAll()
+        http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(auth -> auth.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/error", "/cache/stats").permitAll()
 
                 .requestMatchers("/baseinfos/**", "/certifications/**", "/classifications/**", "/commendations/**", "/companies/**", "/compatibilities/**", "/finances/**", "/iteminfos/**", "/majorshareholders/**", "/managementindexes/**", "/patents/**", "/procurements/**", "/subsidies/**", "/womenactivities/**", "/workplaceinfos").authenticated()
 

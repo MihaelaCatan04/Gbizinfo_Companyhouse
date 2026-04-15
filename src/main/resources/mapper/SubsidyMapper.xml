@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
 <mapper namespace="com.java.companyhouse.mapper.SubsidyMapper">
 
     <update id="upsertSubsidy">
@@ -19,36 +18,34 @@
                                      updated_at,
                                      deleted,
                                      sync_id)
-        SELECT c.company_id, s.subsidy_id, now(), now(), false, #{syncId}::uuid
-        FROM company c
-                 JOIN subsidy s ON s.merge_key = #{dto.mergeKey}
-        WHERE c.corporate_number = #{dto.corporateNumber}
-        ON CONFLICT (company_id, subsidy_id) DO UPDATE SET deleted    = false,
-                                                           updated_at = now(),
-                                                           sync_id    = EXCLUDED.sync_id
-        WHERE company_subsidy.deleted IS DISTINCT FROM false
-           OR company_subsidy.sync_id IS DISTINCT FROM EXCLUDED.sync_id
+        VALUES (#{companyId}, #{subsidyId}, now(), now(), false, #{syncId}::uuid)
+        ON CONFLICT (company_id, subsidy_id) DO UPDATE
+            SET deleted    = false,
+                updated_at = now(),
+                sync_id    = EXCLUDED.sync_id
     </update>
 
     <update id="softDeleteAllCompanySubsidies">
-        UPDATE company_subsidy cs
+        UPDATE company_subsidy
         SET deleted    = true,
             updated_at = now()
-        WHERE cs.deleted = false
-          AND cs.company_id = (SELECT c.company_id
-                               FROM company c
-                               WHERE c.corporate_number = #{corporateNumber})
+        WHERE deleted = false
+          AND company_id = #{companyId}
     </update>
 
     <update id="softDeleteMissingCompanySubsidies">
-        UPDATE company_subsidy cs
+        UPDATE company_subsidy
         SET deleted    = true,
             updated_at = now()
-        WHERE cs.deleted = false
-          AND cs.company_id = (SELECT c.company_id
-                               FROM company c
-                               WHERE c.corporate_number = #{corporateNumber})
-          AND cs.sync_id IS DISTINCT FROM #{syncId}::uuid
+        WHERE deleted = false
+          AND company_id = #{companyId}
+          AND sync_id != #{syncId}::uuid
     </update>
+
+    <select id="findSubsidyIdByMergeKey" resultType="java.lang.Long">
+        SELECT subsidy_id
+        FROM subsidy
+        WHERE merge_key = #{mergeKey}
+    </select>
 
 </mapper>

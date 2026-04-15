@@ -19,36 +19,33 @@
                                            updated_at,
                                            deleted,
                                            sync_id)
-        SELECT c.company_id, e.certification_id, now(), now(), false, #{syncId}::uuid
-        FROM company c
-                 JOIN certification e ON e.merge_key = #{dto.mergeKey}
-        WHERE c.corporate_number = #{dto.corporateNumber}
-        ON CONFLICT (company_id, certification_id) DO UPDATE SET deleted    = false,
-                                                                 updated_at = now(),
-                                                                 sync_id    = EXCLUDED.sync_id
-        WHERE company_certification.deleted IS DISTINCT FROM false
-           OR company_certification.sync_id IS DISTINCT FROM EXCLUDED.sync_id
+        VALUES (#{companyId}, #{certificationId}, now(), now(), false, #{syncId}::uuid)
+        ON CONFLICT (company_id, certification_id) DO UPDATE
+            SET deleted    = false,
+                updated_at = now(),
+                sync_id    = EXCLUDED.sync_id
     </update>
 
     <update id="softDeleteAllCompanyCertifications">
-        UPDATE company_certification cc
+        UPDATE company_certification
         SET deleted    = true,
             updated_at = now()
-        WHERE cc.deleted = false
-          AND cc.company_id = (SELECT c.company_id
-                               FROM company c
-                               WHERE c.corporate_number = #{corporateNumber})
+        WHERE deleted = false
+          AND company_id = #{companyId}
     </update>
 
     <update id="softDeleteMissingCompanyCertifications">
-        UPDATE company_certification cc
+        UPDATE company_certification
         SET deleted    = true,
             updated_at = now()
-        WHERE cc.deleted = false
-          AND cc.company_id = (SELECT c.company_id
-                               FROM company c
-                               WHERE c.corporate_number = #{corporateNumber})
-          AND cc.sync_id IS DISTINCT FROM #{syncId}::uuid
+        WHERE deleted = false
+          AND company_id = #{companyId}
+          AND sync_id != #{syncId}::uuid
     </update>
 
+    <select id="findCertificationIdByMergeKey" resultType="java.lang.Long">
+        SELECT certification_id
+        FROM certification
+        WHERE merge_key = #{mergeKey}
+    </select>
 </mapper>

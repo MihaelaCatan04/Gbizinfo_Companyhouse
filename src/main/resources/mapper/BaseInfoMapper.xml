@@ -22,4 +22,9 @@
         ON CONFLICT (merge_key) DO NOTHING
     </update>
 
+    <select id="findBaseInfoIdByMergeKey" resultType="java.lang.Long">
+        SELECT base_info_id
+        FROM base_info
+        WHERE merge_key = #{mergeKey}
+    </select>
 </mapper>

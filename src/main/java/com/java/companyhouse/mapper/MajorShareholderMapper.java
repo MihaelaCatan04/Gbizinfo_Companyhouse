@@ -9,11 +9,13 @@ public interface MajorShareholderMapper {
 
     void upsertMajorShareholder(MajorShareholderDto dto);
 
-    void upsertFinanceShareholder(@Param("mergeKey") String mergeKey, @Param("financeMergeKey") String financeMergeKey, @Param("corporateNumber") String corporateNumber, @Param("syncId") String syncId);
+    void upsertFinanceShareholder(@Param("companyId") Long companyId, @Param("financeId") Long financeId, @Param("majorShareholderId") Long majorShareholderId, @Param("syncId") String syncId);
 
-    void softDeleteAllFinanceShareholders(@Param("corporateNumber") String corporateNumber, @Param("financeMergeKey") String financeMergeKey);
+    void softDeleteAllFinanceShareholders(@Param("companyId") Long companyId, @Param("financeId") Long financeId);
 
-    void softDeleteMissingFinanceShareholders(@Param("corporateNumber") String corporateNumber, @Param("financeMergeKey") String financeMergeKey, @Param("syncId") String syncId);
+    void softDeleteMissingFinanceShareholders(@Param("companyId") Long companyId, @Param("financeId") Long financeId, @Param("syncId") String syncId);
 
-    void softDeleteOrphanedFinanceShareholders(@Param("corporateNumber") String corporateNumber);
+    void softDeleteOrphanedFinanceShareholders(@Param("companyId") Long companyId);
+
+    Long findMajorShareholderIdByMergeKey(String mergeKey);
 }

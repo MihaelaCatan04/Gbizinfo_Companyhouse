@@ -7,11 +7,13 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface ItemInfoMapper {
 
-    void upsertItemInfo(ItemInfoDto dto);
+    void upsertItemInfo(ItemInfoDto entity);
 
-    void upsertCompanyItem(@Param("dto") ItemInfoDto dto, @Param("syncId") String syncId);
+    void upsertCompanyItem(@Param("companyId") Long companyId, @Param("infoId") Long infoId, @Param("syncId") String syncId);
 
-    void softDeleteAllCompanyItems(@Param("corporateNumber") String corporateNumber);
+    void softDeleteAllCompanyItems(@Param("companyId") Long companyId);
 
-    void softDeleteMissingCompanyItems(@Param("corporateNumber") String corporateNumber, @Param("syncId") String syncId);
+    void softDeleteMissingCompanyItems(@Param("companyId") Long companyId, @Param("syncId") String syncId);
+
+    Long findInfoIdByMergeKey(String mergeKey);
 }

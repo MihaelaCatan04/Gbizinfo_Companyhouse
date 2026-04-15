@@ -1,5 +1,7 @@
 package com.java.companyhouse.service;
 
+import com.java.companyhouse.cache.CertificationIdResolver;
+import com.java.companyhouse.cache.CompanyIdResolver;
 import com.java.companyhouse.mapper.AdvisoryLockMapper;
 import com.java.companyhouse.mapper.CertificationMapper;
 import com.java.companyhouse.model.dto.CertificationDto;
@@ -11,11 +13,15 @@ public class CertificationService extends AbstractBatchService<CertificationDto>
 
     private final CertificationMapper certificationMapper;
     private final AdvisoryLockMapper advisoryLockMapper;
+    private final CompanyIdResolver companyIdResolver;
+    private final CertificationIdResolver certificationIdResolver;
 
-    public CertificationService(CertificationMapper certificationMapper, AdvisoryLockMapper advisoryLockMapper, TransactionTemplate transactionTemplate) {
+    public CertificationService(CertificationMapper certificationMapper, AdvisoryLockMapper advisoryLockMapper, TransactionTemplate transactionTemplate, CompanyIdResolver companyIdResolver, CertificationIdResolver certificationIdResolver) {
         super(transactionTemplate);
         this.certificationMapper = certificationMapper;
         this.advisoryLockMapper = advisoryLockMapper;
+        this.companyIdResolver = companyIdResolver;
+        this.certificationIdResolver = certificationIdResolver;
     }
 
     @Override
@@ -25,18 +31,24 @@ public class CertificationService extends AbstractBatchService<CertificationDto>
 
     @Override
     protected void onEmpty(String corporateNumber) {
-        certificationMapper.softDeleteAllCompanyCertifications(corporateNumber);
+        Long companyId = companyIdResolver.resolve(corporateNumber);
+        certificationMapper.softDeleteAllCompanyCertifications(companyId);
     }
 
     @Override
     protected void upsert(CertificationDto entity, String syncId) {
         certificationMapper.upsertCertification(entity);
-        certificationMapper.upsertCompanyCertification(entity, syncId);
+
+        Long companyId = companyIdResolver.resolve(entity.getCorporateNumber());
+        Long certificationId = certificationIdResolver.resolve(entity.getMergeKey());
+
+        certificationMapper.upsertCompanyCertification(companyId, certificationId, syncId);
     }
 
     @Override
     protected void cleanup(String corporateNumber, String syncId) {
-        certificationMapper.softDeleteMissingCompanyCertifications(corporateNumber, syncId);
+        Long companyId = companyIdResolver.resolve(corporateNumber);
+        certificationMapper.softDeleteMissingCompanyCertifications(companyId, syncId);
     }
 
     @Override

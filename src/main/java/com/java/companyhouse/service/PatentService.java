@@ -1,5 +1,7 @@
 package com.java.companyhouse.service;
 
+import com.java.companyhouse.cache.CompanyIdResolver;
+import com.java.companyhouse.cache.PatentIdResolver;
 import com.java.companyhouse.mapper.AdvisoryLockMapper;
 import com.java.companyhouse.mapper.PatentMapper;
 import com.java.companyhouse.model.dto.PatentDto;
@@ -11,12 +13,16 @@ public class PatentService extends AbstractBatchService<PatentDto> {
 
     private final PatentMapper patentMapper;
     private final AdvisoryLockMapper advisoryLockMapper;
+    private final CompanyIdResolver companyIdResolver;
+    private final PatentIdResolver patentIdResolver;
     private final ClassificationService classificationService;
 
-    public PatentService(PatentMapper patentMapper, AdvisoryLockMapper advisoryLockMapper, TransactionTemplate transactionTemplate, ClassificationService classificationService) {
+    public PatentService(PatentMapper patentMapper, AdvisoryLockMapper advisoryLockMapper, TransactionTemplate transactionTemplate, CompanyIdResolver companyIdResolver, PatentIdResolver patentIdResolver, ClassificationService classificationService) {
         super(transactionTemplate);
         this.patentMapper = patentMapper;
         this.advisoryLockMapper = advisoryLockMapper;
+        this.companyIdResolver = companyIdResolver;
+        this.patentIdResolver = patentIdResolver;
         this.classificationService = classificationService;
     }
 
@@ -27,19 +33,25 @@ public class PatentService extends AbstractBatchService<PatentDto> {
 
     @Override
     protected void onEmpty(String corporateNumber) {
-        patentMapper.softDeleteAllCompanyPatents(corporateNumber);
+        Long companyId = companyIdResolver.resolve(corporateNumber);
+        patentMapper.softDeleteAllCompanyPatents(companyId);
         classificationService.deleteOrphanedPatentClassifications(corporateNumber);
     }
 
     @Override
     protected void upsert(PatentDto entity, String syncId) {
         patentMapper.upsertPatent(entity);
-        patentMapper.upsertCompanyPatent(entity, syncId);
+
+        Long companyId = companyIdResolver.resolve(entity.getCorporateNumber());
+        Long patentId = patentIdResolver.resolve(entity.getMergeKey());
+
+        patentMapper.upsertCompanyPatent(companyId, patentId, syncId);
     }
 
     @Override
     protected void cleanup(String corporateNumber, String syncId) {
-        patentMapper.softDeleteMissingCompanyPatents(corporateNumber, syncId);
+        Long companyId = companyIdResolver.resolve(corporateNumber);
+        patentMapper.softDeleteMissingCompanyPatents(companyId, syncId);
         classificationService.deleteOrphanedPatentClassifications(corporateNumber);
     }
 

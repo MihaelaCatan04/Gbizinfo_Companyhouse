@@ -6,4 +6,8 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface CompanyMapper {
     void upsertCompany(CompanyDto dto);
+
+    Long findCompanyIdByCorporateNumber(String corporateNumber);
+
+    CompanyDto findCompanyByCorporateNumber(String corporateNumber);
 }

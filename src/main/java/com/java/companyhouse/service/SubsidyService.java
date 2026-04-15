@@ -1,5 +1,7 @@
 package com.java.companyhouse.service;
 
+import com.java.companyhouse.cache.CompanyIdResolver;
+import com.java.companyhouse.cache.SubsidyIdResolver;
 import com.java.companyhouse.mapper.AdvisoryLockMapper;
 import com.java.companyhouse.mapper.SubsidyMapper;
 import com.java.companyhouse.model.dto.SubsidyDto;
@@ -11,11 +13,15 @@ public class SubsidyService extends AbstractBatchService<SubsidyDto> {
 
     private final SubsidyMapper subsidyMapper;
     private final AdvisoryLockMapper advisoryLockMapper;
+    private final CompanyIdResolver companyIdResolver;
+    private final SubsidyIdResolver subsidyIdResolver;
 
-    public SubsidyService(SubsidyMapper subsidyMapper, AdvisoryLockMapper advisoryLockMapper, TransactionTemplate transactionTemplate) {
+    public SubsidyService(SubsidyMapper subsidyMapper, AdvisoryLockMapper advisoryLockMapper, TransactionTemplate transactionTemplate, CompanyIdResolver companyIdResolver, SubsidyIdResolver subsidyIdResolver) {
         super(transactionTemplate);
         this.subsidyMapper = subsidyMapper;
         this.advisoryLockMapper = advisoryLockMapper;
+        this.companyIdResolver = companyIdResolver;
+        this.subsidyIdResolver = subsidyIdResolver;
     }
 
     @Override
@@ -25,18 +31,24 @@ public class SubsidyService extends AbstractBatchService<SubsidyDto> {
 
     @Override
     protected void onEmpty(String corporateNumber) {
-        subsidyMapper.softDeleteAllCompanySubsidies(corporateNumber);
+        Long companyId = companyIdResolver.resolve(corporateNumber);
+        subsidyMapper.softDeleteAllCompanySubsidies(companyId);
     }
 
     @Override
     protected void upsert(SubsidyDto entity, String syncId) {
         subsidyMapper.upsertSubsidy(entity);
-        subsidyMapper.upsertCompanySubsidy(entity, syncId);
+
+        Long companyId = companyIdResolver.resolve(entity.getCorporateNumber());
+        Long subsidyId = subsidyIdResolver.resolve(entity.getMergeKey());
+
+        subsidyMapper.upsertCompanySubsidy(companyId, subsidyId, syncId);
     }
 
     @Override
     protected void cleanup(String corporateNumber, String syncId) {
-        subsidyMapper.softDeleteMissingCompanySubsidies(corporateNumber, syncId);
+        Long companyId = companyIdResolver.resolve(corporateNumber);
+        subsidyMapper.softDeleteMissingCompanySubsidies(companyId, syncId);
     }
 
     @Override

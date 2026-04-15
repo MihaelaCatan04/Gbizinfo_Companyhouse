@@ -17,48 +17,61 @@
                 #{companySizeFemale}, #{businessSummary}, #{companyUrl},
                 #{foundingYear}, #{dateOfEstablishment}, #{qualificationGrade},
                 NOW(), NULL)
-        ON CONFLICT (corporate_number) DO UPDATE SET name                  = EXCLUDED.name,
-                                                     kana                  = EXCLUDED.kana,
-                                                     name_en               = EXCLUDED.name_en,
-                                                     postal_code           = EXCLUDED.postal_code,
-                                                     location              = EXCLUDED.location,
-                                                     process               = EXCLUDED.process,
-                                                     aggregated_year       = EXCLUDED.aggregated_year,
-                                                     status                = EXCLUDED.status,
-                                                     close_date            = EXCLUDED.close_date,
-                                                     close_cause           = EXCLUDED.close_cause,
-                                                     kind                  = EXCLUDED.kind,
-                                                     representative_name   = EXCLUDED.representative_name,
-                                                     capital_stock         = EXCLUDED.capital_stock,
-                                                     employee_number       = EXCLUDED.employee_number,
-                                                     company_size_male     = EXCLUDED.company_size_male,
-                                                     company_size_female   = EXCLUDED.company_size_female,
-                                                     business_summary      = EXCLUDED.business_summary,
-                                                     company_url           = EXCLUDED.company_url,
-                                                     founding_year         = EXCLUDED.founding_year,
-                                                     date_of_establishment = EXCLUDED.date_of_establishment,
-                                                     qualification_grade   = EXCLUDED.qualification_grade,
-                                                     updated_at            = NOW()
-        WHERE company.name IS DISTINCT FROM EXCLUDED.name
-           OR company.kana IS DISTINCT FROM EXCLUDED.kana
-           OR company.name_en IS DISTINCT FROM EXCLUDED.name_en
-           OR company.postal_code IS DISTINCT FROM EXCLUDED.postal_code
-           OR company.location IS DISTINCT FROM EXCLUDED.location
-           OR company.process IS DISTINCT FROM EXCLUDED.process
-           OR company.aggregated_year IS DISTINCT FROM EXCLUDED.aggregated_year
-           OR company.status IS DISTINCT FROM EXCLUDED.status
-           OR company.close_date IS DISTINCT FROM EXCLUDED.close_date
-           OR company.close_cause IS DISTINCT FROM EXCLUDED.close_cause
-           OR company.kind IS DISTINCT FROM EXCLUDED.kind
-           OR company.representative_name IS DISTINCT FROM EXCLUDED.representative_name
-           OR company.capital_stock IS DISTINCT FROM EXCLUDED.capital_stock
-           OR company.employee_number IS DISTINCT FROM EXCLUDED.employee_number
-           OR company.company_size_male IS DISTINCT FROM EXCLUDED.company_size_male
-           OR company.company_size_female IS DISTINCT FROM EXCLUDED.company_size_female
-           OR company.business_summary IS DISTINCT FROM EXCLUDED.business_summary
-           OR company.company_url IS DISTINCT FROM EXCLUDED.company_url
-           OR company.founding_year IS DISTINCT FROM EXCLUDED.founding_year
-           OR company.date_of_establishment IS DISTINCT FROM EXCLUDED.date_of_establishment
-           OR company.qualification_grade IS DISTINCT FROM EXCLUDED.qualification_grade
+        ON CONFLICT (corporate_number) DO UPDATE
+            SET name                  = EXCLUDED.name,
+                kana                  = EXCLUDED.kana,
+                name_en               = EXCLUDED.name_en,
+                postal_code           = EXCLUDED.postal_code,
+                location              = EXCLUDED.location,
+                process               = EXCLUDED.process,
+                aggregated_year       = EXCLUDED.aggregated_year,
+                status                = EXCLUDED.status,
+                close_date            = EXCLUDED.close_date,
+                close_cause           = EXCLUDED.close_cause,
+                kind                  = EXCLUDED.kind,
+                representative_name   = EXCLUDED.representative_name,
+                capital_stock         = EXCLUDED.capital_stock,
+                employee_number       = EXCLUDED.employee_number,
+                company_size_male     = EXCLUDED.company_size_male,
+                company_size_female   = EXCLUDED.company_size_female,
+                business_summary      = EXCLUDED.business_summary,
+                company_url           = EXCLUDED.company_url,
+                founding_year         = EXCLUDED.founding_year,
+                date_of_establishment = EXCLUDED.date_of_establishment,
+                qualification_grade   = EXCLUDED.qualification_grade,
+                updated_at            = NOW()
     </update>
+
+    <select id="findCompanyIdByCorporateNumber" resultType="java.lang.Long">
+        SELECT company_id
+        FROM company
+        WHERE corporate_number = #{corporateNumber}
+    </select>
+
+    <select id="findCompanyByCorporateNumber" resultType="com.java.companyhouse.model.dto.CompanyDto">
+        SELECT corporate_number      as corporateNumber,
+               name,
+               kana,
+               name_en               as nameEn,
+               postal_code           as postalCode,
+               location,
+               process,
+               aggregated_year       as aggregatedYear,
+               status,
+               close_date            as closeDate,
+               close_cause           as closeCause,
+               kind,
+               representative_name   as representativeName,
+               capital_stock         as capitalStock,
+               employee_number       as employeeNumber,
+               company_size_male     as companySizeMale,
+               company_size_female   as companySizeFemale,
+               business_summary      as businessSummary,
+               company_url           as companyUrl,
+               founding_year         as foundingYear,
+               date_of_establishment as dateOfEstablishment,
+               qualification_grade   as qualificationGrade
+        FROM company
+        WHERE corporate_number = #{corporateNumber}
+    </select>
 </mapper>

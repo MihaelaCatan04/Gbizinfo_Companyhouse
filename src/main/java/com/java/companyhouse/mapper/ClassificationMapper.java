@@ -9,11 +9,13 @@ public interface ClassificationMapper {
 
     void upsertClassification(ClassificationDto dto);
 
-    void upsertPatentClassification(@Param("mergeKey") String mergeKey, @Param("patentMergeKey") String patentMergeKey, @Param("corporateNumber") String corporateNumber, @Param("syncId") String syncId);
+    void upsertPatentClassification(@Param("companyId") Long companyId, @Param("patentId") Long patentId, @Param("classificationId") Long classificationId, @Param("syncId") String syncId);
 
-    void softDeleteAllPatentClassifications(@Param("corporateNumber") String corporateNumber, @Param("patentMergeKey") String patentMergeKey);
+    void softDeleteAllPatentClassifications(@Param("companyId") Long companyId, @Param("patentId") Long patentId);
 
-    void softDeleteMissingPatentClassifications(@Param("corporateNumber") String corporateNumber, @Param("patentMergeKey") String patentMergeKey, @Param("syncId") String syncId);
+    void softDeleteMissingPatentClassifications(@Param("companyId") Long companyId, @Param("patentId") Long patentId, @Param("syncId") String syncId);
 
-    void softDeleteOrphanedPatentClassifications(@Param("corporateNumber") String corporateNumber);
+    void softDeleteOrphanedPatentClassifications(@Param("companyId") Long companyId);
+
+    Long findClassificationIdByMergeKey(String mergeKey);
 }
