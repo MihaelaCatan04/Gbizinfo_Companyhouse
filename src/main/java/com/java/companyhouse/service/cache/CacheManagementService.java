@@ -1,4 +1,4 @@
-package com.java.companyhouse.service;
+package com.java.companyhouse.service.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.stats.CacheStats;

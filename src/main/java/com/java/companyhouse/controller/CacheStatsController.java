@@ -1,6 +1,6 @@
 package com.java.companyhouse.controller;
 
-import com.java.companyhouse.service.CacheManagementService;
+import com.java.companyhouse.service.cache.CacheManagementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

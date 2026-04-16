@@ -53,8 +53,7 @@ public abstract class AbstractBatchService<T> {
     protected void onEmpty(String corporateNumber) {
     }
 
-    protected void upsert(T entity, String syncId) {
-    }
+    protected abstract void upsert(T entity, String syncId);
 
     protected void cleanup(String corporateNumber, String syncId) {
     }
