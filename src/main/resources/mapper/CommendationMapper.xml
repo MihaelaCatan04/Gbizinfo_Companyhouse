@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.java.companyhouse.mapper.CommendationMapper">
+
+    <update id="upsertCommendation">
+        INSERT INTO commendation (merge_key, date_of_commendation, title, target,
+                                  category, government_departments, note)
+        VALUES (#{mergeKey}, #{dateOfCommendation}, #{title}, #{target},
+                #{category}, #{governmentDepartments}, #{note})
+        ON CONFLICT (merge_key) DO NOTHING
+    </update>
+
+    <update id="upsertCompanyCommendation">
+        INSERT INTO company_commendation (company_id,
+                                          commendation_id,
+                                          inserted_at,
+                                          updated_at,
+                                          deleted,
+                                          sync_id)
+        VALUES (#{companyId}, #{commendationId}, now(), now(), false, #{syncId}::uuid)
+        ON CONFLICT (company_id, commendation_id) DO UPDATE
+            SET deleted    = false,
+                updated_at = now(),
+                sync_id    = EXCLUDED.sync_id
+    </update>
+
+    <update id="softDeleteAllCompanyCommendations">
+        UPDATE company_commendation
+        SET deleted    = true,
+            updated_at = now()
+        WHERE deleted = false
+          AND company_id = #{companyId}
+    </update>
+
+    <update id="softDeleteMissingCompanyCommendations">
+        UPDATE company_commendation
+        SET deleted    = true,
+            updated_at = now()
+        WHERE deleted = false
+          AND company_id = #{companyId}
+          AND sync_id != #{syncId}::uuid
+    </update>
+
+    <select id="findCommendationIdByMergeKey" resultType="java.lang.Long">
+        SELECT commendation_id
+        FROM commendation
+        WHERE merge_key = #{mergeKey}
+    </select>
+
+</mapper>

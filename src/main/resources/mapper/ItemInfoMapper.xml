@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.java.companyhouse.mapper.ItemInfoMapper">
+
+    <update id="upsertItemInfo">
+        INSERT INTO item_info (merge_key, value, is_industry, deleted)
+        VALUES (#{mergeKey}, #{value}, #{isIndustry}, false)
+        ON CONFLICT (merge_key) DO NOTHING
+    </update>
+
+    <update id="upsertCompanyItem">
+        INSERT INTO company_item (company_id,
+                                  info_id,
+                                  inserted_at,
+                                  updated_at,
+                                  deleted,
+                                  sync_id)
+        VALUES (#{companyId}, #{infoId}, now(), now(), false, #{syncId}::uuid)
+        ON CONFLICT (company_id, info_id) DO UPDATE
+            SET deleted    = false,
+                updated_at = now(),
+                sync_id    = EXCLUDED.sync_id
+    </update>
+
+    <update id="softDeleteAllCompanyItems">
+        UPDATE company_item
+        SET deleted    = true,
+            updated_at = now()
+        WHERE deleted = false
+          AND company_id = #{companyId}
+    </update>
+
+    <update id="softDeleteMissingCompanyItems">
+        UPDATE company_item
+        SET deleted    = true,
+            updated_at = now()
+        WHERE deleted = false
+          AND company_id = #{companyId}
+          AND sync_id != #{syncId}::uuid
+    </update>
+
+    <select id="findInfoIdByMergeKey" resultType="java.lang.Long">
+        SELECT info_id
+        FROM item_info
+        WHERE merge_key = #{mergeKey}
+    </select>
+
+</mapper>

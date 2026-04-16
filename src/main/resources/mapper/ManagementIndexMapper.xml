@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.java.companyhouse.mapper.ManagementIndexMapper">
+
+    <update id="upsertManagementIndex">
+        INSERT INTO management_index (merge_key, period,
+                                      net_sales_summary_of_business_results,
+                                      net_sales_summary_of_business_results_unit_ref,
+                                      operating_revenue1_summary_of_business_results,
+                                      operating_revenue1_summary_of_business_results_unit_ref,
+                                      operating_revenue2_summary_of_business_results,
+                                      operating_revenue2_summary_of_business_results_unit_ref,
+                                      gross_operating_revenue_summary_of_business_results,
+                                      gross_operating_revenue_summary_of_business_results_unit_ref,
+                                      ordinary_income_summary_of_business_results,
+                                      ordinary_income_summary_of_business_results_unit_ref,
+                                      net_premiums_written_summary_of_business_results_ins,
+                                      net_premiums_written_summary_of_business_results_ins_unit_ref,
+                                      ordinary_income_loss_summary_of_business_results,
+                                      ordinary_income_loss_summary_of_business_results_unit_ref,
+                                      net_income_loss_summary_of_business_results,
+                                      net_income_loss_summary_of_business_results_unit_ref,
+                                      capital_stock_summary_of_business_results,
+                                      capital_stock_summary_of_business_results_unit_ref,
+                                      net_assets_summary_of_business_results,
+                                      net_assets_summary_of_business_results_unit_ref,
+                                      total_assets_summary_of_business_results,
+                                      total_assets_summary_of_business_results_unit_ref,
+                                      number_of_employees,
+                                      number_of_employees_unit_ref)
+        VALUES (#{mergeKey}, #{period},
+                #{netSalesSummaryOfBusinessResults},
+                #{netSalesSummaryOfBusinessResultsUnitRef},
+                #{operatingRevenue1SummaryOfBusinessResults},
+                #{operatingRevenue1SummaryOfBusinessResultsUnitRef},
+                #{operatingRevenue2SummaryOfBusinessResults},
+                #{operatingRevenue2SummaryOfBusinessResultsUnitRef},
+                #{grossOperatingRevenueSummaryOfBusinessResults},
+                #{grossOperatingRevenueSummaryOfBusinessResultsUnitRef},
+                #{ordinaryIncomeSummaryOfBusinessResults},
+                #{ordinaryIncomeSummaryOfBusinessResultsUnitRef},
+                #{netPremiumsWrittenSummaryOfBusinessResultIns},
+                #{netPremiumsWrittenSummaryOfBusinessResultsInsUnitRef},
+                #{ordinaryIncomeLossSummaryOfBusinessResults},
+                #{ordinaryIncomeLossSummaryOfBusinessResultsUnitRef},
+                #{netIncomeLossSummaryOfBusinessResults},
+                #{netIncomeLossSummaryOfBusinessResultsUnitRef},
+                #{capitalStockSummaryOfBusinessResults},
+                #{capitalStockSummaryOfBusinessResultsUnitRef},
+                #{netAssetsSummaryOfBusinessResults},
+                #{netAssetsSummaryOfBusinessResultsUnitRef},
+                #{totalAssetsSummaryOfBusinessResults},
+                #{totalAssetsSummaryOfBusinessResultsUnitRef},
+                #{numberOfEmployees},
+                #{numberOfEmployeesUnitRef})
+        ON CONFLICT (merge_key) DO NOTHING
+    </update>
+
+    <update id="upsertFinanceManagement">
+        INSERT INTO finance_management (company_id,
+                                        finance_id,
+                                        management_index_id,
+                                        inserted_at,
+                                        updated_at,
+                                        deleted,
+                                        sync_id)
+        VALUES (#{companyId}, #{financeId}, #{managementIndexId}, now(), now(), false, #{syncId}::uuid)
+        ON CONFLICT (company_id, finance_id, management_index_id) DO UPDATE
+            SET deleted    = false,
+                updated_at = now(),
+                sync_id    = EXCLUDED.sync_id
+    </update>
+
+    <update id="softDeleteAllFinanceManagementIndexes">
+        UPDATE finance_management
+        SET deleted    = true,
+            updated_at = now()
+        WHERE deleted = false
+          AND company_id = #{companyId}
+          AND finance_id = #{financeId}
+    </update>
+
+    <update id="softDeleteMissingFinanceManagementIndexes">
+        UPDATE finance_management
+        SET deleted    = true,
+            updated_at = now()
+        WHERE deleted = false
+          AND company_id = #{companyId}
+          AND finance_id = #{financeId}
+          AND sync_id != #{syncId}::uuid
+    </update>
+
+    <update id="softDeleteOrphanedFinanceManagementIndexes">
+        UPDATE finance_management fm
+        SET deleted    = true,
+            updated_at = now()
+        FROM company_finance cf
+        WHERE fm.finance_id = cf.finance_id
+          AND fm.company_id = #{companyId}
+          AND cf.company_id = #{companyId}
+          AND cf.deleted = true
+          AND fm.deleted = false
+    </update>
+
+    <select id="findManagementIndexIdByMergeKey" resultType="java.lang.Long">
+        SELECT management_index_id
+        FROM management_index
+        WHERE merge_key = #{mergeKey}
+    </select>
+
+</mapper>

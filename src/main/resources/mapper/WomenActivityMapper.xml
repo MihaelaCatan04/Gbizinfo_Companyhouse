@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.java.companyhouse.mapper.WomenActivityMapper">
+
+    <update id="upsertWomenActivity">
+        INSERT INTO women_activity_info (merge_key,
+                                         female_workers_proportion_type,
+                                         female_workers_proportion,
+                                         female_share_of_manager,
+                                         gender_total_of_manager,
+                                         female_share_of_officers,
+                                         gender_total_of_officers)
+        VALUES (#{mergeKey},
+                #{femaleWorkersProportionType},
+                #{femaleWorkersProportion},
+                #{femaleShareOfManager},
+                #{genderTotalOfManager},
+                #{femaleShareOfOfficers},
+                #{genderTotalOfOfficers})
+        ON CONFLICT (merge_key) DO NOTHING
+    </update>
+
+    <select id="findWomenActivityIdByMergeKey" resultType="java.lang.Long">
+        SELECT women_activity_info_id
+        FROM women_activity_info
+        WHERE merge_key = #{mergeKey}
+    </select>
+</mapper>

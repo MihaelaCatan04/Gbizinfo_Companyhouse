@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.java.companyhouse.mapper.BaseInfoMapper">
+
+    <update id="upsertBaseInfo">
+        INSERT INTO base_info (merge_key,
+                               average_continuous_service_years_type,
+                               average_continuous_service_years_male,
+                               average_continuous_service_years_female,
+                               average_continuous_service_years,
+                               average_age,
+                               month_average_predetermined_overtime_hours)
+        VALUES (#{mergeKey},
+                #{averageContinuousServiceYearsType},
+                #{averageContinuousServiceYearsMale},
+                #{averageContinuousServiceYearsFemale},
+                #{averageContinuousServiceYears},
+                #{averageAge},
+                #{monthAveragePredeterminedOvertimeHours})
+        ON CONFLICT (merge_key) DO NOTHING
+    </update>
+
+    <select id="findBaseInfoIdByMergeKey" resultType="java.lang.Long">
+        SELECT base_info_id
+        FROM base_info
+        WHERE merge_key = #{mergeKey}
+    </select>
+</mapper>

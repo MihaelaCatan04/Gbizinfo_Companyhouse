@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.java.companyhouse.mapper.MajorShareholderMapper">
+
+    <update id="upsertMajorShareholder">
+        INSERT INTO major_shareholder (merge_key, name_major_stakeholders, shareholding_ratio)
+        VALUES (#{mergeKey}, #{nameMajorShareholders}, #{shareholdingRatio})
+        ON CONFLICT (merge_key) DO NOTHING
+    </update>
+
+    <update id="upsertFinanceShareholder">
+        INSERT INTO finance_shareholder (company_id,
+                                         finance_id,
+                                         major_shareholder_id,
+                                         inserted_at,
+                                         updated_at,
+                                         deleted,
+                                         sync_id)
+        VALUES (#{companyId}, #{financeId}, #{majorShareholderId}, now(), now(), false, #{syncId}::uuid)
+        ON CONFLICT (company_id, finance_id, major_shareholder_id) DO UPDATE
+            SET deleted    = false,
+                updated_at = now(),
+                sync_id    = EXCLUDED.sync_id
+    </update>
+
+    <update id="softDeleteAllFinanceShareholders">
+        UPDATE finance_shareholder
+        SET deleted    = true,
+            updated_at = now()
+        WHERE deleted = false
+          AND company_id = #{companyId}
+          AND finance_id = #{financeId}
+    </update>
+
+    <update id="softDeleteMissingFinanceShareholders">
+        UPDATE finance_shareholder
+        SET deleted    = true,
+            updated_at = now()
+        WHERE deleted = false
+          AND company_id = #{companyId}
+          AND finance_id = #{financeId}
+          AND sync_id != #{syncId}::uuid
+    </update>
+
+    <update id="softDeleteOrphanedFinanceShareholders">
+        UPDATE finance_shareholder fs
+        SET deleted    = true,
+            updated_at = now()
+        FROM company_finance cf
+        WHERE fs.finance_id = cf.finance_id
+          AND fs.company_id = #{companyId}
+          AND cf.company_id = #{companyId}
+          AND cf.deleted = true
+          AND fs.deleted = false
+    </update>
+
+    <select id="findMajorShareholderIdByMergeKey" resultType="java.lang.Long">
+        SELECT major_shareholder_id
+        FROM major_shareholder
+        WHERE merge_key = #{mergeKey}
+    </select>
+
+</mapper>

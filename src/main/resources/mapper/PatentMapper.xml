@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.java.companyhouse.mapper.PatentMapper">
+
+    <update id="upsertPatent">
+        INSERT INTO patent (merge_key, patent_type, registration_number,
+                            application_date, title, url)
+        VALUES (#{mergeKey}, #{patentType}, #{registrationNumber},
+                #{applicationDate}, #{title}, #{url})
+        ON CONFLICT (merge_key) DO NOTHING
+    </update>
+
+    <update id="upsertCompanyPatent">
+        INSERT INTO company_patent (company_id,
+                                    patent_id,
+                                    inserted_at,
+                                    updated_at,
+                                    deleted,
+                                    sync_id)
+        VALUES (#{companyId}, #{patentId}, now(), now(), false, #{syncId}::uuid)
+        ON CONFLICT (company_id, patent_id) DO UPDATE
+            SET deleted    = false,
+                updated_at = now(),
+                sync_id    = EXCLUDED.sync_id
+    </update>
+
+    <update id="softDeleteAllCompanyPatents">
+        UPDATE company_patent
+        SET deleted    = true,
+            updated_at = now()
+        WHERE deleted = false
+          AND company_id = #{companyId}
+    </update>
+
+    <update id="softDeleteMissingCompanyPatents">
+        UPDATE company_patent
+        SET deleted    = true,
+            updated_at = now()
+        WHERE deleted = false
+          AND company_id = #{companyId}
+          AND sync_id != #{syncId}::uuid
+    </update>
+
+    <select id="findPatentIdByMergeKey" resultType="java.lang.Long">
+        SELECT patent_id
+        FROM patent
+        WHERE merge_key = #{mergeKey}
+    </select>
+
+</mapper>

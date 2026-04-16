@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.java.companyhouse.mapper.ProcurementMapper">
+
+    <update id="upsertProcurement">
+        INSERT INTO procurement (merge_key, date_of_order, title, amount,
+                                 government_departments, note)
+        VALUES (#{mergeKey}, #{dateOfOrder}, #{title}, #{amount},
+                #{governmentDepartments}, #{note})
+        ON CONFLICT (merge_key) DO NOTHING
+    </update>
+
+    <update id="upsertCompanyProcurement">
+        INSERT INTO company_procurement (company_id,
+                                         procurement_id,
+                                         inserted_at,
+                                         updated_at,
+                                         deleted,
+                                         sync_id)
+        VALUES (#{companyId}, #{procurementId}, now(), now(), false, #{syncId}::uuid)
+        ON CONFLICT (company_id, procurement_id) DO UPDATE
+            SET deleted    = false,
+                updated_at = now(),
+                sync_id    = EXCLUDED.sync_id
+    </update>
+
+    <update id="softDeleteAllCompanyProcurements">
+        UPDATE company_procurement
+        SET deleted    = true,
+            updated_at = now()
+        WHERE deleted = false
+          AND company_id = #{companyId}
+    </update>
+
+    <update id="softDeleteMissingCompanyProcurements">
+        UPDATE company_procurement
+        SET deleted    = true,
+            updated_at = now()
+        WHERE deleted = false
+          AND company_id = #{companyId}
+          AND sync_id != #{syncId}::uuid
+    </update>
+
+    <select id="findProcurementIdByMergeKey" resultType="java.lang.Long">
+        SELECT procurement_id
+        FROM procurement
+        WHERE merge_key = #{mergeKey}
+    </select>
+
+</mapper>
