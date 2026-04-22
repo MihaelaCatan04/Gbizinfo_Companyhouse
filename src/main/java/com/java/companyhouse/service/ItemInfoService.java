@@ -62,6 +62,11 @@ public class ItemInfoService extends AbstractBatchService<ItemInfoDto> {
     }
 
     @Override
+    protected void warmEmptyCache(List<String> corporateNumbers) {
+        cache.warmAll(COMPANY_KEY, corporateNumbers, companyMapper::findCompanyIdsByCorporateNumbers);
+    }
+
+    @Override
     protected void onEmptyBatch(List<String> corporateNumbers) {
         List<Long> companyIds = new ArrayList<>(resolveCompanyIds(corporateNumbers).values());
         itemInfoMapper.softDeleteAllCompanyItems(companyIds);

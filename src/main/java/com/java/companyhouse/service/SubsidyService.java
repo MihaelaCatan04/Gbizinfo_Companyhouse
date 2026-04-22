@@ -62,6 +62,11 @@ public class SubsidyService extends AbstractBatchService<SubsidyDto> {
     }
 
     @Override
+    protected void warmEmptyCache(List<String> corporateNumbers) {
+        cache.warmAll(COMPANY_KEY, corporateNumbers, companyMapper::findCompanyIdsByCorporateNumbers);
+    }
+
+    @Override
     protected void onEmptyBatch(List<String> corporateNumbers) {
         List<Long> companyIds = new ArrayList<>(resolveCompanyIds(corporateNumbers).values());
         subsidyMapper.softDeleteAllCompanySubsidies(companyIds);
