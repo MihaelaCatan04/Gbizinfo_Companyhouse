@@ -20,23 +20,6 @@ public class RedisCacheService {
         this.redis = redis;
     }
 
-    public String get(String key) {
-        try {
-            return redis.opsForValue().get(key);
-        } catch (Exception e) {
-            log.warn("Redis GET failed key={}", key, e);
-            return null;
-        }
-    }
-
-    public void set(String key, Long value) {
-        try {
-            redis.opsForValue().set(key, value.toString());
-        } catch (Exception e) {
-            log.warn("Redis SET failed key={}", key, e);
-        }
-    }
-
     public List<String> multiGet(List<String> keys) {
         if (keys == null || keys.isEmpty()) {
             return Collections.emptyList();
