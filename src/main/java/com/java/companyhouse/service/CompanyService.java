@@ -9,6 +9,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class CompanyService extends AbstractBatchService<CompanyDto> {
@@ -26,7 +27,21 @@ public class CompanyService extends AbstractBatchService<CompanyDto> {
 
     @Override
     protected void bulkUpsertEntities(List<CompanyDto> chunk) {
-        companyMapper.bulkUpsertCompanies(chunk);
+        List<String> corporateNumbers = chunk.stream()
+                .map(CompanyDto::getCorporateNumber)
+                .toList();
+
+        Map<String, CompanyDto> existing = companyMapper.findByCorporateNumbers(corporateNumbers)
+                .stream()
+                .collect(Collectors.toMap(CompanyDto::getCorporateNumber, c -> c));
+
+        List<CompanyDto> changed = chunk.stream()
+                .filter(incoming -> !incoming.equals(existing.get(incoming.getCorporateNumber())))
+                .toList();
+
+        if (!changed.isEmpty()) {
+            companyMapper.bulkUpsertCompanies(changed);
+        }
     }
 
     @Override

@@ -15,4 +15,6 @@ public interface CompanyMapper {
     Long findCompanyIdByCorporateNumber(@Param("corporateNumber") String corporateNumber);
 
     List<MergeKeyIdDto> findCompanyIdsByCorporateNumbers(@Param("list") List<String> list);
+
+    List<CompanyDto> findByCorporateNumbers(@Param("list") List<String> list);
 }
