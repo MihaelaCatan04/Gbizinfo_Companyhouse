@@ -1,19 +1,25 @@
 package com.java.companyhouse.mapper;
 
 import com.java.companyhouse.model.dto.CertificationDto;
+import com.java.companyhouse.model.solved.JunctionPair;
+import com.java.companyhouse.model.solved.MergeKeyIdDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface CertificationMapper {
 
-    void upsertCertification(CertificationDto entity);
+    void bulkUpsertCertifications(@Param("list") List<CertificationDto> list);
 
-    void upsertCompanyCertification(@Param("companyId") Long companyId, @Param("certificationId") Long certificationId, @Param("syncId") String syncId);
+    Long findCertificationIdByMergeKey(@Param("mergeKey") String mergeKey);
 
-    void softDeleteAllCompanyCertifications(@Param("companyId") Long companyId);
+    List<MergeKeyIdDto> findCertificationIdsByMergeKeys(@Param("list") List<String> list);
 
-    void softDeleteMissingCompanyCertifications(@Param("companyId") Long companyId, @Param("syncId") String syncId);
+    void bulkUpsertCompanyCertifications(@Param("pairs") List<JunctionPair> pairs, @Param("syncId") String syncId);
 
-    Long findCertificationIdByMergeKey(String mergeKey);
+    void softDeleteAllCompanyCertifications(@Param("companyIds") List<Long> companyIds);
+
+    void softDeleteMissingCompanyCertifications(@Param("companyIds") List<Long> companyIds, @Param("syncId") String syncId);
 }

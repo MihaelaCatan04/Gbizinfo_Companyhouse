@@ -3,104 +3,67 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.java.companyhouse.mapper.ManagementIndexMapper">
 
-    <update id="upsertManagementIndex">
-        INSERT INTO management_index (merge_key, period,
-                                      net_sales_summary_of_business_results,
-                                      net_sales_summary_of_business_results_unit_ref,
-                                      operating_revenue1_summary_of_business_results,
-                                      operating_revenue1_summary_of_business_results_unit_ref,
-                                      operating_revenue2_summary_of_business_results,
-                                      operating_revenue2_summary_of_business_results_unit_ref,
-                                      gross_operating_revenue_summary_of_business_results,
-                                      gross_operating_revenue_summary_of_business_results_unit_ref,
-                                      ordinary_income_summary_of_business_results,
-                                      ordinary_income_summary_of_business_results_unit_ref,
-                                      net_premiums_written_summary_of_business_results_ins,
-                                      net_premiums_written_summary_of_business_results_ins_unit_ref,
-                                      ordinary_income_loss_summary_of_business_results,
-                                      ordinary_income_loss_summary_of_business_results_unit_ref,
-                                      net_income_loss_summary_of_business_results,
-                                      net_income_loss_summary_of_business_results_unit_ref,
-                                      capital_stock_summary_of_business_results,
-                                      capital_stock_summary_of_business_results_unit_ref,
-                                      net_assets_summary_of_business_results,
-                                      net_assets_summary_of_business_results_unit_ref,
-                                      total_assets_summary_of_business_results,
-                                      total_assets_summary_of_business_results_unit_ref,
-                                      number_of_employees,
-                                      number_of_employees_unit_ref)
-        VALUES (#{mergeKey}, #{period},
-                #{netSalesSummaryOfBusinessResults},
-                #{netSalesSummaryOfBusinessResultsUnitRef},
-                #{operatingRevenue1SummaryOfBusinessResults},
-                #{operatingRevenue1SummaryOfBusinessResultsUnitRef},
-                #{operatingRevenue2SummaryOfBusinessResults},
-                #{operatingRevenue2SummaryOfBusinessResultsUnitRef},
-                #{grossOperatingRevenueSummaryOfBusinessResults},
-                #{grossOperatingRevenueSummaryOfBusinessResultsUnitRef},
-                #{ordinaryIncomeSummaryOfBusinessResults},
-                #{ordinaryIncomeSummaryOfBusinessResultsUnitRef},
-                #{netPremiumsWrittenSummaryOfBusinessResultIns},
-                #{netPremiumsWrittenSummaryOfBusinessResultsInsUnitRef},
-                #{ordinaryIncomeLossSummaryOfBusinessResults},
-                #{ordinaryIncomeLossSummaryOfBusinessResultsUnitRef},
-                #{netIncomeLossSummaryOfBusinessResults},
-                #{netIncomeLossSummaryOfBusinessResultsUnitRef},
-                #{capitalStockSummaryOfBusinessResults},
-                #{capitalStockSummaryOfBusinessResultsUnitRef},
-                #{netAssetsSummaryOfBusinessResults},
-                #{netAssetsSummaryOfBusinessResultsUnitRef},
-                #{totalAssetsSummaryOfBusinessResults},
-                #{totalAssetsSummaryOfBusinessResultsUnitRef},
-                #{numberOfEmployees},
-                #{numberOfEmployeesUnitRef})
+    <update id="bulkUpsertManagementIndexes">
+        INSERT INTO management_index (
+        merge_key,
+        period,
+        net_sales_summary_of_business_results,
+        net_sales_summary_of_business_results_unit_ref,
+        operating_revenue1_summary_of_business_results,
+        operating_revenue1_summary_of_business_results_unit_ref,
+        operating_revenue2_summary_of_business_results,
+        operating_revenue2_summary_of_business_results_unit_ref,
+        gross_operating_revenue_summary_of_business_results,
+        gross_operating_revenue_summary_of_business_results_unit_ref,
+        ordinary_income_summary_of_business_results,
+        ordinary_income_summary_of_business_results_unit_ref,
+        net_premiums_written_summary_of_business_results_ins,
+        net_premiums_written_summary_of_business_results_ins_unit_ref,
+        ordinary_income_loss_summary_of_business_results,
+        ordinary_income_loss_summary_of_business_results_unit_ref,
+        net_income_loss_summary_of_business_results,
+        net_income_loss_summary_of_business_results_unit_ref,
+        capital_stock_summary_of_business_results,
+        capital_stock_summary_of_business_results_unit_ref,
+        net_assets_summary_of_business_results,
+        net_assets_summary_of_business_results_unit_ref,
+        total_assets_summary_of_business_results,
+        total_assets_summary_of_business_results_unit_ref,
+        number_of_employees,
+        number_of_employees_unit_ref
+        )
+        VALUES
+        <foreach collection="list" item="e" separator=",">
+            (
+            #{e.mergeKey},
+            #{e.period},
+            #{e.netSalesSummaryOfBusinessResults},
+            #{e.netSalesSummaryOfBusinessResultsUnitRef},
+            #{e.operatingRevenue1SummaryOfBusinessResults},
+            #{e.operatingRevenue1SummaryOfBusinessResultsUnitRef},
+            #{e.operatingRevenue2SummaryOfBusinessResults},
+            #{e.operatingRevenue2SummaryOfBusinessResultsUnitRef},
+            #{e.grossOperatingRevenueSummaryOfBusinessResults},
+            #{e.grossOperatingRevenueSummaryOfBusinessResultsUnitRef},
+            #{e.ordinaryIncomeSummaryOfBusinessResults},
+            #{e.ordinaryIncomeSummaryOfBusinessResultsUnitRef},
+            #{e.netPremiumsWrittenSummaryOfBusinessResultIns},
+            #{e.netPremiumsWrittenSummaryOfBusinessResultsInsUnitRef},
+            #{e.ordinaryIncomeLossSummaryOfBusinessResults},
+            #{e.ordinaryIncomeLossSummaryOfBusinessResultsUnitRef},
+            #{e.netIncomeLossSummaryOfBusinessResults},
+            #{e.netIncomeLossSummaryOfBusinessResultsUnitRef},
+            #{e.capitalStockSummaryOfBusinessResults},
+            #{e.capitalStockSummaryOfBusinessResultsUnitRef},
+            #{e.netAssetsSummaryOfBusinessResults},
+            #{e.netAssetsSummaryOfBusinessResultsUnitRef},
+            #{e.totalAssetsSummaryOfBusinessResults},
+            #{e.totalAssetsSummaryOfBusinessResultsUnitRef},
+            #{e.numberOfEmployees},
+            #{e.numberOfEmployeesUnitRef}
+            )
+        </foreach>
         ON CONFLICT (merge_key) DO NOTHING
-    </update>
-
-    <update id="upsertFinanceManagement">
-        INSERT INTO finance_management (company_id,
-                                        finance_id,
-                                        management_index_id,
-                                        inserted_at,
-                                        updated_at,
-                                        deleted,
-                                        sync_id)
-        VALUES (#{companyId}, #{financeId}, #{managementIndexId}, now(), now(), false, #{syncId}::uuid)
-        ON CONFLICT (company_id, finance_id, management_index_id) DO UPDATE
-            SET deleted    = false,
-                updated_at = now(),
-                sync_id    = EXCLUDED.sync_id
-    </update>
-
-    <update id="softDeleteAllFinanceManagementIndexes">
-        UPDATE finance_management
-        SET deleted    = true,
-            updated_at = now()
-        WHERE deleted = false
-          AND company_id = #{companyId}
-          AND finance_id = #{financeId}
-    </update>
-
-    <update id="softDeleteMissingFinanceManagementIndexes">
-        UPDATE finance_management
-        SET deleted    = true,
-            updated_at = now()
-        WHERE deleted = false
-          AND company_id = #{companyId}
-          AND finance_id = #{financeId}
-          AND sync_id != #{syncId}::uuid
-    </update>
-
-    <update id="softDeleteOrphanedFinanceManagementIndexes">
-        UPDATE finance_management fm
-        SET deleted    = true,
-            updated_at = now()
-        FROM company_finance cf
-        WHERE fm.finance_id = cf.finance_id
-          AND fm.company_id = #{companyId}
-          AND cf.company_id = #{companyId}
-          AND cf.deleted = true
-          AND fm.deleted = false
     </update>
 
     <select id="findManagementIndexIdByMergeKey" resultType="java.lang.Long">
@@ -109,4 +72,83 @@
         WHERE merge_key = #{mergeKey}
     </select>
 
+    <select id="findManagementIndexIdsByMergeKeys"
+            resultType="com.java.companyhouse.model.solved.MergeKeyIdDto">
+        SELECT merge_key AS mergeKey, management_index_id AS id
+        FROM management_index
+        WHERE merge_key IN
+        <foreach collection="list" item="mk" open="(" separator="," close=")">
+            #{mk}
+        </foreach>
+    </select>
+
+    <update id="bulkUpsertFinanceManagementIndexes">
+        INSERT INTO finance_management (
+        company_id,
+        finance_id,
+        management_index_id,
+        inserted_at,
+        updated_at,
+        deleted,
+        sync_id
+        )
+        VALUES
+        <foreach collection="triples" item="t" separator=",">
+            (
+            #{t.companyId},
+            #{t.parentId},
+            #{t.childId},
+            now(),
+            now(),
+            false,
+            #{syncId}::uuid
+            )
+        </foreach>
+        ON CONFLICT (company_id, finance_id, management_index_id) DO UPDATE
+        SET deleted = false,
+        updated_at = now(),
+        sync_id = EXCLUDED.sync_id
+    </update>
+
+    <update id="softDeleteMissingFinanceManagementIndexes">
+        UPDATE finance_management fm
+        SET deleted = true,
+        updated_at = now()
+        FROM (
+        VALUES
+        <foreach collection="pairs" item="p" separator=",">
+            (#{p.companyId}::bigint, #{p.childId}::bigint)
+        </foreach>
+        ) AS scope(company_id, finance_id)
+        WHERE fm.company_id = scope.company_id
+        AND fm.finance_id = scope.finance_id
+        AND fm.deleted = false
+        AND fm.sync_id != #{syncId}::uuid
+    </update>
+
+    <update id="softDeleteOrphanedFinanceManagementIndexes">
+        UPDATE finance_management fm
+        SET deleted = true,
+        updated_at = now()
+        FROM company_finance cf
+        WHERE fm.finance_id = cf.finance_id
+        AND fm.company_id = cf.company_id
+        AND cf.deleted = true
+        AND fm.deleted = false
+        AND cf.company_id IN
+        <foreach collection="companyIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="softDeleteAllFinanceManagementIndexes">
+        UPDATE finance_management_index
+        SET deleted = true,
+        updated_at = now()
+        WHERE deleted = false
+        AND (company_id, finance_id) IN
+        <foreach collection="list" item="p" open="(" separator="," close=")">
+            (#{p.companyId}, #{p.childId})
+        </foreach>
+    </update>
 </mapper>

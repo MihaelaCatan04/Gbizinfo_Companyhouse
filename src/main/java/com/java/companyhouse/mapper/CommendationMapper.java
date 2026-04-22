@@ -1,19 +1,25 @@
 package com.java.companyhouse.mapper;
 
 import com.java.companyhouse.model.dto.CommendationDto;
+import com.java.companyhouse.model.solved.JunctionPair;
+import com.java.companyhouse.model.solved.MergeKeyIdDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface CommendationMapper {
 
-    void upsertCommendation(CommendationDto entity);
+    void bulkUpsertCommendations(@Param("list") List<CommendationDto> list);
 
-    void upsertCompanyCommendation(@Param("companyId") Long companyId, @Param("commendationId") Long commendationId, @Param("syncId") String syncId);
+    Long findCommendationIdByMergeKey(@Param("mergeKey") String mergeKey);
 
-    void softDeleteAllCompanyCommendations(@Param("companyId") Long companyId);
+    List<MergeKeyIdDto> findCommendationIdsByMergeKeys(@Param("list") List<String> list);
 
-    void softDeleteMissingCompanyCommendations(@Param("companyId") Long companyId, @Param("syncId") String syncId);
+    void bulkUpsertCompanyCommendations(@Param("pairs") List<JunctionPair> pairs, @Param("syncId") String syncId);
 
-    Long findCommendationIdByMergeKey(String mergeKey);
+    void softDeleteAllCompanyCommendations(@Param("companyIds") List<Long> companyIds);
+
+    void softDeleteMissingCompanyCommendations(@Param("companyIds") List<Long> companyIds, @Param("syncId") String syncId);
 }

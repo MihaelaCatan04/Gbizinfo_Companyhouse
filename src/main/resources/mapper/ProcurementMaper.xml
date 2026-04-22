@@ -3,43 +3,19 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.java.companyhouse.mapper.ProcurementMapper">
 
-    <update id="upsertProcurement">
-        INSERT INTO procurement (merge_key, date_of_order, title, amount,
-                                 government_departments, note)
-        VALUES (#{mergeKey}, #{dateOfOrder}, #{title}, #{amount},
-                #{governmentDepartments}, #{note})
+    <update id="bulkUpsertProcurements">
+        INSERT INTO procurement (
+        merge_key, date_of_order, title, amount,
+        government_departments, note
+        )
+        VALUES
+        <foreach collection="list" item="e" separator=",">
+            (
+            #{e.mergeKey}, #{e.dateOfOrder}, #{e.title}, #{e.amount},
+            #{e.governmentDepartments}, #{e.note}
+            )
+        </foreach>
         ON CONFLICT (merge_key) DO NOTHING
-    </update>
-
-    <update id="upsertCompanyProcurement">
-        INSERT INTO company_procurement (company_id,
-                                         procurement_id,
-                                         inserted_at,
-                                         updated_at,
-                                         deleted,
-                                         sync_id)
-        VALUES (#{companyId}, #{procurementId}, now(), now(), false, #{syncId}::uuid)
-        ON CONFLICT (company_id, procurement_id) DO UPDATE
-            SET deleted    = false,
-                updated_at = now(),
-                sync_id    = EXCLUDED.sync_id
-    </update>
-
-    <update id="softDeleteAllCompanyProcurements">
-        UPDATE company_procurement
-        SET deleted    = true,
-            updated_at = now()
-        WHERE deleted = false
-          AND company_id = #{companyId}
-    </update>
-
-    <update id="softDeleteMissingCompanyProcurements">
-        UPDATE company_procurement
-        SET deleted    = true,
-            updated_at = now()
-        WHERE deleted = false
-          AND company_id = #{companyId}
-          AND sync_id != #{syncId}::uuid
     </update>
 
     <select id="findProcurementIdByMergeKey" resultType="java.lang.Long">
@@ -47,5 +23,53 @@
         FROM procurement
         WHERE merge_key = #{mergeKey}
     </select>
+
+    <select id="findProcurementIdsByMergeKeys"
+            resultType="com.java.companyhouse.model.solved.MergeKeyIdDto">
+        SELECT merge_key AS mergeKey, procurement_id AS id
+        FROM procurement
+        WHERE merge_key IN
+        <foreach collection="list" item="mk" open="(" separator="," close=")">
+            #{mk}
+        </foreach>
+    </select>
+
+    <update id="bulkUpsertCompanyProcurements">
+        INSERT INTO company_procurement (
+        company_id, procurement_id,
+        inserted_at, updated_at, deleted, sync_id
+        )
+        VALUES
+        <foreach collection="pairs" item="p" separator=",">
+            (#{p.companyId}, #{p.childId}, now(), now(), false, #{syncId}::uuid)
+        </foreach>
+        ON CONFLICT (company_id, procurement_id) DO UPDATE
+        SET deleted = false,
+        updated_at = now(),
+        sync_id = EXCLUDED.sync_id
+    </update>
+
+    <update id="softDeleteAllCompanyProcurements">
+        UPDATE company_procurement
+        SET deleted = true,
+        updated_at = now()
+        WHERE deleted = false
+        AND company_id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="softDeleteMissingCompanyProcurements">
+        UPDATE company_procurement
+        SET deleted = true,
+        updated_at = now()
+        WHERE deleted = false
+        AND sync_id != #{syncId}::uuid
+        AND company_id IN
+        <foreach collection="companyIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 
 </mapper>

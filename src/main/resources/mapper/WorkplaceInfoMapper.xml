@@ -3,34 +3,43 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.java.companyhouse.mapper.WorkplaceInfoMapper">
 
-    <update id="upsertWorkplaceInfo">
-        INSERT INTO workplace_info (merge_key,
-                                    base_info,
-                                    women_activity_info,
-                                    compatibility_of_childcare_and_work)
-        VALUES (#{mergeKey}, #{baseInfoId}, #{womenActivityInfoId}, #{compatibilityId})
+    <update id="bulkUpsertWorkplaceInfos">
+        INSERT INTO workplace_info (
+        merge_key,
+        base_info,
+        women_activity_info,
+        compatibility_of_childcare_and_work
+        )
+        VALUES
+        <foreach collection="list" item="e" separator=",">
+            (#{e.mergeKey}, #{e.baseInfoId}, #{e.womenActivityInfoId}, #{e.compatibilityId})
+        </foreach>
         ON CONFLICT (merge_key) DO NOTHING
     </update>
 
-    <update id="upsertCompanyWorkplaceInfo">
-        UPDATE company
-        SET workplace_info = #{mergeKey},
-            updated_at     = now()
-        WHERE corporate_number = #{corporateNumber}
+    <update id="bulkAttachCompanyWorkplaceInfos">
+        UPDATE company c
+        SET workplace_info = v.merge_key,
+        updated_at = now()
+        FROM (
+        VALUES
+        <foreach collection="list" item="e" separator=",">
+            (#{e.corporateNumber}, #{e.mergeKey})
+        </foreach>
+        ) AS v(corporate_number, merge_key)
+        WHERE c.corporate_number = v.corporate_number
+        AND c.workplace_info IS DISTINCT FROM v.merge_key
     </update>
 
-    <update id="clearCompanyWorkplaceInfo">
+    <update id="bulkClearCompanyWorkplaceInfos">
         UPDATE company
-        SET workplace_info = null,
-            updated_at     = now()
-        WHERE corporate_number = #{corporateNumber}
-          AND workplace_info IS NOT NULL
+        SET workplace_info = NULL,
+        updated_at = now()
+        WHERE workplace_info IS NOT NULL
+        AND corporate_number IN
+        <foreach collection="list" item="cn" open="(" separator="," close=")">
+            #{cn}
+        </foreach>
     </update>
-
-    <select id="findCompanyWorkplaceInfo" resultType="java.lang.String">
-        SELECT workplace_info
-        FROM company
-        WHERE corporate_number = #{corporateNumber}
-    </select>
 
 </mapper>

@@ -1,19 +1,25 @@
 package com.java.companyhouse.mapper;
 
 import com.java.companyhouse.model.dto.FinanceDto;
+import com.java.companyhouse.model.solved.JunctionPair;
+import com.java.companyhouse.model.solved.MergeKeyIdDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface FinanceMapper {
 
-    void upsertFinance(FinanceDto entity);
+    void bulkUpsertFinances(@Param("list") List<FinanceDto> list);
 
-    void upsertCompanyFinance(@Param("companyId") Long companyId, @Param("financeId") Long financeId, @Param("syncId") String syncId);
+    Long findFinanceIdByMergeKey(@Param("mergeKey") String mergeKey);
 
-    void softDeleteAllCompanyFinances(@Param("companyId") Long companyId);
+    List<MergeKeyIdDto> findFinanceIdsByMergeKeys(@Param("list") List<String> list);
 
-    void softDeleteMissingCompanyFinances(@Param("companyId") Long companyId, @Param("syncId") String syncId);
+    void bulkUpsertCompanyFinances(@Param("pairs") List<JunctionPair> pairs, @Param("syncId") String syncId);
 
-    Long findFinanceIdByMergeKey(String mergeKey);
+    void softDeleteAllCompanyFinances(@Param("companyIds") List<Long> companyIds);
+
+    void softDeleteMissingCompanyFinances(@Param("companyIds") List<Long> companyIds, @Param("syncId") String syncId);
 }

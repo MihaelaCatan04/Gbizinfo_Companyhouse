@@ -1,54 +1,75 @@
 package com.java.companyhouse.service;
 
-import com.java.companyhouse.cache.CompanyIdResolver;
-import com.java.companyhouse.cache.ItemInfoIdResolver;
-import com.java.companyhouse.mapper.AdvisoryLockMapper;
+import com.java.companyhouse.cache.Cache;
+import com.java.companyhouse.mapper.CompanyMapper;
 import com.java.companyhouse.mapper.ItemInfoMapper;
 import com.java.companyhouse.model.dto.ItemInfoDto;
+import com.java.companyhouse.model.solved.JunctionPair;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class ItemInfoService extends AbstractBatchService<ItemInfoDto> {
 
+    private static final String COMPANY_KEY = "company:id:";
+    private static final String ITEM_INFO_KEY = "item_info:id:";
+
     private final ItemInfoMapper itemInfoMapper;
-    private final AdvisoryLockMapper advisoryLockMapper;
-    private final CompanyIdResolver companyIdResolver;
-    private final ItemInfoIdResolver itemInfoIdResolver;
+    private final CompanyMapper companyMapper;
+    private final Cache cache;
 
-    public ItemInfoService(ItemInfoMapper itemInfoMapper, AdvisoryLockMapper advisoryLockMapper, TransactionTemplate transactionTemplate, CompanyIdResolver companyIdResolver, ItemInfoIdResolver itemInfoIdResolver) {
-        super(transactionTemplate);
+    public ItemInfoService(ItemInfoMapper itemInfoMapper, CompanyMapper companyMapper, TransactionTemplate transactionTemplate, Cache cache, @Value("${batch.size:500}") int batchSize) {
+        super(transactionTemplate, batchSize);
         this.itemInfoMapper = itemInfoMapper;
-        this.advisoryLockMapper = advisoryLockMapper;
-        this.companyIdResolver = companyIdResolver;
-        this.itemInfoIdResolver = itemInfoIdResolver;
+        this.companyMapper = companyMapper;
+        this.cache = cache;
     }
 
     @Override
-    protected void acquireLock(String corporateNumber) {
-        advisoryLockMapper.acquireAdvisoryLock(corporateNumber);
+    protected void bulkUpsertEntities(List<ItemInfoDto> chunk) {
+        itemInfoMapper.bulkUpsertItemInfos(chunk);
     }
 
     @Override
-    protected void onEmpty(String corporateNumber) {
-        Long companyId = companyIdResolver.resolve(corporateNumber);
-        itemInfoMapper.softDeleteAllCompanyItems(companyId);
+    protected void warmCache(List<String> corporateNumbers, List<String> mergeKeys) {
+        cache.warmAll(COMPANY_KEY, corporateNumbers, companyMapper::findCompanyIdsByCorporateNumbers);
+        cache.warmAll(ITEM_INFO_KEY, mergeKeys, itemInfoMapper::findItemInfoIdsByMergeKeys);
     }
 
     @Override
-    protected void upsert(ItemInfoDto entity, String syncId) {
-        itemInfoMapper.upsertItemInfo(entity);
-
-        Long companyId = companyIdResolver.resolve(entity.getCorporateNumber());
-        Long infoId = itemInfoIdResolver.resolve(entity.getMergeKey());
-
-        itemInfoMapper.upsertCompanyItem(companyId, infoId, syncId);
+    protected Map<String, Long> resolveCompanyIds(List<String> corporateNumbers) {
+        return cache.resolveAll(COMPANY_KEY, corporateNumbers, companyMapper::findCompanyIdsByCorporateNumbers);
     }
 
     @Override
-    protected void cleanup(String corporateNumber, String syncId) {
-        Long companyId = companyIdResolver.resolve(corporateNumber);
-        itemInfoMapper.softDeleteMissingCompanyItems(companyId, syncId);
+    protected Map<String, Long> resolveChildIds(List<String> mergeKeys) {
+        return cache.resolveAll(ITEM_INFO_KEY, mergeKeys, itemInfoMapper::findItemInfoIdsByMergeKeys);
+    }
+
+    @Override
+    protected void bulkUpsertJunction(List<JunctionPair> pairs, String syncId) {
+        itemInfoMapper.bulkUpsertCompanyItems(pairs, syncId);
+    }
+
+    @Override
+    protected void cleanup(List<Long> companyIds, String syncId) {
+        itemInfoMapper.softDeleteMissingCompanyItems(companyIds, syncId);
+    }
+
+    @Override
+    protected void onEmptyBatch(List<String> corporateNumbers) {
+        List<Long> companyIds = new ArrayList<>(resolveCompanyIds(corporateNumbers).values());
+        itemInfoMapper.softDeleteAllCompanyItems(companyIds);
+    }
+
+    @Override
+    protected String getMergeKey(ItemInfoDto entity) {
+        return entity.getMergeKey();
     }
 
     @Override
