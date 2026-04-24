@@ -3,41 +3,13 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.java.companyhouse.mapper.ItemInfoMapper">
 
-    <update id="upsertItemInfo">
+    <update id="bulkUpsertItemInfos">
         INSERT INTO item_info (merge_key, value, is_industry, deleted)
-        VALUES (#{mergeKey}, #{value}, #{isIndustry}, false)
+        VALUES
+        <foreach collection="list" item="e" separator=",">
+            (#{e.mergeKey}, #{e.value}, #{e.isIndustry}, false)
+        </foreach>
         ON CONFLICT (merge_key) DO NOTHING
-    </update>
-
-    <update id="upsertCompanyItem">
-        INSERT INTO company_item (company_id,
-                                  info_id,
-                                  inserted_at,
-                                  updated_at,
-                                  deleted,
-                                  sync_id)
-        VALUES (#{companyId}, #{infoId}, now(), now(), false, #{syncId}::uuid)
-        ON CONFLICT (company_id, info_id) DO UPDATE
-            SET deleted    = false,
-                updated_at = now(),
-                sync_id    = EXCLUDED.sync_id
-    </update>
-
-    <update id="softDeleteAllCompanyItems">
-        UPDATE company_item
-        SET deleted    = true,
-            updated_at = now()
-        WHERE deleted = false
-          AND company_id = #{companyId}
-    </update>
-
-    <update id="softDeleteMissingCompanyItems">
-        UPDATE company_item
-        SET deleted    = true,
-            updated_at = now()
-        WHERE deleted = false
-          AND company_id = #{companyId}
-          AND sync_id != #{syncId}::uuid
     </update>
 
     <select id="findInfoIdByMergeKey" resultType="java.lang.Long">
@@ -45,5 +17,53 @@
         FROM item_info
         WHERE merge_key = #{mergeKey}
     </select>
+
+    <select id="findItemInfoIdsByMergeKeys"
+            resultType="com.java.companyhouse.model.solved.MergeKeyIdDto">
+        SELECT merge_key AS mergeKey, info_id AS id
+        FROM item_info
+        WHERE merge_key IN
+        <foreach collection="list" item="mk" open="(" separator="," close=")">
+            #{mk}
+        </foreach>
+    </select>
+
+    <update id="bulkUpsertCompanyItems">
+        INSERT INTO company_item (
+        company_id, info_id,
+        inserted_at, updated_at, deleted, sync_id
+        )
+        VALUES
+        <foreach collection="pairs" item="p" separator=",">
+            (#{p.companyId}, #{p.childId}, now(), now(), false, #{syncId}::uuid)
+        </foreach>
+        ON CONFLICT (company_id, info_id) DO UPDATE
+        SET deleted = false,
+        updated_at = now(),
+        sync_id = EXCLUDED.sync_id
+    </update>
+
+    <update id="softDeleteAllCompanyItems">
+        UPDATE company_item
+        SET deleted = true,
+        updated_at = now()
+        WHERE deleted = false
+        AND company_id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="softDeleteMissingCompanyItems">
+        UPDATE company_item
+        SET deleted = true,
+        updated_at = now()
+        WHERE deleted = false
+        AND sync_id != #{syncId}::uuid
+        AND company_id IN
+        <foreach collection="companyIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 
 </mapper>

@@ -3,56 +3,21 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.java.companyhouse.mapper.MajorShareholderMapper">
 
-    <update id="upsertMajorShareholder">
-        INSERT INTO major_shareholder (merge_key, name_major_stakeholders, shareholding_ratio)
-        VALUES (#{mergeKey}, #{nameMajorShareholders}, #{shareholdingRatio})
+    <update id="bulkUpsertMajorShareholders">
+        INSERT INTO major_shareholder (
+        merge_key,
+        name_major_stakeholders,
+        shareholding_ratio
+        )
+        VALUES
+        <foreach collection="list" item="e" separator=",">
+            (
+            #{e.mergeKey},
+            #{e.nameMajorShareholders},
+            #{e.shareholdingRatio}
+            )
+        </foreach>
         ON CONFLICT (merge_key) DO NOTHING
-    </update>
-
-    <update id="upsertFinanceShareholder">
-        INSERT INTO finance_shareholder (company_id,
-                                         finance_id,
-                                         major_shareholder_id,
-                                         inserted_at,
-                                         updated_at,
-                                         deleted,
-                                         sync_id)
-        VALUES (#{companyId}, #{financeId}, #{majorShareholderId}, now(), now(), false, #{syncId}::uuid)
-        ON CONFLICT (company_id, finance_id, major_shareholder_id) DO UPDATE
-            SET deleted    = false,
-                updated_at = now(),
-                sync_id    = EXCLUDED.sync_id
-    </update>
-
-    <update id="softDeleteAllFinanceShareholders">
-        UPDATE finance_shareholder
-        SET deleted    = true,
-            updated_at = now()
-        WHERE deleted = false
-          AND company_id = #{companyId}
-          AND finance_id = #{financeId}
-    </update>
-
-    <update id="softDeleteMissingFinanceShareholders">
-        UPDATE finance_shareholder
-        SET deleted    = true,
-            updated_at = now()
-        WHERE deleted = false
-          AND company_id = #{companyId}
-          AND finance_id = #{financeId}
-          AND sync_id != #{syncId}::uuid
-    </update>
-
-    <update id="softDeleteOrphanedFinanceShareholders">
-        UPDATE finance_shareholder fs
-        SET deleted    = true,
-            updated_at = now()
-        FROM company_finance cf
-        WHERE fs.finance_id = cf.finance_id
-          AND fs.company_id = #{companyId}
-          AND cf.company_id = #{companyId}
-          AND cf.deleted = true
-          AND fs.deleted = false
     </update>
 
     <select id="findMajorShareholderIdByMergeKey" resultType="java.lang.Long">
@@ -61,4 +26,83 @@
         WHERE merge_key = #{mergeKey}
     </select>
 
+    <select id="findMajorShareholderIdsByMergeKeys"
+            resultType="com.java.companyhouse.model.solved.MergeKeyIdDto">
+        SELECT merge_key AS mergeKey, major_shareholder_id AS id
+        FROM major_shareholder
+        WHERE merge_key IN
+        <foreach collection="list" item="mk" open="(" separator="," close=")">
+            #{mk}
+        </foreach>
+    </select>
+
+    <update id="bulkUpsertFinanceShareholders">
+        INSERT INTO finance_shareholder (
+        company_id,
+        finance_id,
+        major_shareholder_id,
+        inserted_at,
+        updated_at,
+        deleted,
+        sync_id
+        )
+        VALUES
+        <foreach collection="triples" item="t" separator=",">
+            (
+            #{t.companyId},
+            #{t.parentId},
+            #{t.childId},
+            now(),
+            now(),
+            false,
+            #{syncId}::uuid
+            )
+        </foreach>
+        ON CONFLICT (company_id, finance_id, major_shareholder_id) DO UPDATE
+        SET deleted = false,
+        updated_at = now(),
+        sync_id = EXCLUDED.sync_id
+    </update>
+
+    <update id="softDeleteMissingFinanceShareholders">
+        UPDATE finance_shareholder fs
+        SET deleted = true,
+        updated_at = now()
+        FROM (
+        VALUES
+        <foreach collection="pairs" item="p" separator=",">
+            (#{p.companyId}::bigint, #{p.childId}::bigint)
+        </foreach>
+        ) AS scope(company_id, finance_id)
+        WHERE fs.company_id = scope.company_id
+        AND fs.finance_id = scope.finance_id
+        AND fs.deleted = false
+        AND fs.sync_id != #{syncId}::uuid
+    </update>
+
+    <update id="softDeleteOrphanedFinanceShareholders">
+        UPDATE finance_shareholder fs
+        SET deleted = true,
+        updated_at = now()
+        FROM company_finance cf
+        WHERE fs.finance_id = cf.finance_id
+        AND fs.company_id = cf.company_id
+        AND cf.deleted = true
+        AND fs.deleted = false
+        AND cf.company_id IN
+        <foreach collection="companyIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="softDeleteAllFinanceShareholders">
+        UPDATE finance_shareholder
+        SET deleted = true,
+        updated_at = now()
+        WHERE deleted = false
+        AND (company_id, finance_id) IN
+        <foreach collection="list" item="p" open="(" separator="," close=")">
+            (#{p.companyId}, #{p.childId})
+        </foreach>
+    </update>
 </mapper>

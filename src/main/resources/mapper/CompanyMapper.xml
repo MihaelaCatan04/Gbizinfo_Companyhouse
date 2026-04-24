@@ -2,44 +2,51 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.java.companyhouse.mapper.CompanyMapper">
-    <update id="upsertCompany">
-        INSERT INTO company (corporate_number, name, kana, name_en, postal_code,
-                             location, process, aggregated_year, status, close_date,
-                             close_cause, kind, representative_name, capital_stock,
-                             employee_number, company_size_male, company_size_female,
-                             business_summary, company_url, founding_year,
-                             date_of_establishment, qualification_grade,
-                             inserted_at, updated_at)
-        VALUES (#{corporateNumber}, #{name}, #{kana}, #{nameEn}, #{postalCode},
-                #{location}, #{process}, #{aggregatedYear}, #{status},
-                #{closeDate}, #{closeCause}, #{kind}, #{representativeName},
-                #{capitalStock}, #{employeeNumber}, #{companySizeMale},
-                #{companySizeFemale}, #{businessSummary}, #{companyUrl},
-                #{foundingYear}, #{dateOfEstablishment}, #{qualificationGrade},
-                NOW(), NULL)
+
+    <update id="bulkUpsertCompanies">
+        INSERT INTO company (
+        corporate_number, name, kana, name_en, postal_code,
+        location, process, aggregated_year, status, close_date,
+        close_cause, kind, representative_name, capital_stock,
+        employee_number, company_size_male, company_size_female,
+        business_summary, company_url, founding_year,
+        date_of_establishment, qualification_grade,
+        inserted_at, updated_at
+        ) VALUES
+        <foreach collection="list" item="e" separator=",">
+            (
+            #{e.corporateNumber}, #{e.name}, #{e.kana}, #{e.nameEn}, #{e.postalCode},
+            #{e.location}, #{e.process}, #{e.aggregatedYear}, #{e.status}, #{e.closeDate},
+            #{e.closeCause}, #{e.kind}, #{e.representativeName}, #{e.capitalStock},
+            #{e.employeeNumber}, #{e.companySizeMale}, #{e.companySizeFemale},
+            #{e.businessSummary}, #{e.companyUrl}, #{e.foundingYear},
+            #{e.dateOfEstablishment}, #{e.qualificationGrade},
+            now(), NULL
+            )
+        </foreach>
         ON CONFLICT (corporate_number) DO UPDATE
-            SET name                  = EXCLUDED.name,
-                kana                  = EXCLUDED.kana,
-                name_en               = EXCLUDED.name_en,
-                postal_code           = EXCLUDED.postal_code,
-                location              = EXCLUDED.location,
-                process               = EXCLUDED.process,
-                aggregated_year       = EXCLUDED.aggregated_year,
-                status                = EXCLUDED.status,
-                close_date            = EXCLUDED.close_date,
-                close_cause           = EXCLUDED.close_cause,
-                kind                  = EXCLUDED.kind,
-                representative_name   = EXCLUDED.representative_name,
-                capital_stock         = EXCLUDED.capital_stock,
-                employee_number       = EXCLUDED.employee_number,
-                company_size_male     = EXCLUDED.company_size_male,
-                company_size_female   = EXCLUDED.company_size_female,
-                business_summary      = EXCLUDED.business_summary,
-                company_url           = EXCLUDED.company_url,
-                founding_year         = EXCLUDED.founding_year,
-                date_of_establishment = EXCLUDED.date_of_establishment,
-                qualification_grade   = EXCLUDED.qualification_grade,
-                updated_at            = NOW()
+        SET name = EXCLUDED.name,
+        kana = EXCLUDED.kana,
+        name_en = EXCLUDED.name_en,
+        postal_code = EXCLUDED.postal_code,
+        location = EXCLUDED.location,
+        process = EXCLUDED.process,
+        aggregated_year = EXCLUDED.aggregated_year,
+        status = EXCLUDED.status,
+        close_date = EXCLUDED.close_date,
+        close_cause = EXCLUDED.close_cause,
+        kind = EXCLUDED.kind,
+        representative_name = EXCLUDED.representative_name,
+        capital_stock = EXCLUDED.capital_stock,
+        employee_number = EXCLUDED.employee_number,
+        company_size_male = EXCLUDED.company_size_male,
+        company_size_female = EXCLUDED.company_size_female,
+        business_summary = EXCLUDED.business_summary,
+        company_url = EXCLUDED.company_url,
+        founding_year = EXCLUDED.founding_year,
+        date_of_establishment = EXCLUDED.date_of_establishment,
+        qualification_grade = EXCLUDED.qualification_grade,
+        updated_at = now()
     </update>
 
     <select id="findCompanyIdByCorporateNumber" resultType="java.lang.Long">
@@ -48,30 +55,28 @@
         WHERE corporate_number = #{corporateNumber}
     </select>
 
-    <select id="findCompanyByCorporateNumber" resultType="com.java.companyhouse.model.dto.CompanyDto">
-        SELECT corporate_number      as corporateNumber,
-               name,
-               kana,
-               name_en               as nameEn,
-               postal_code           as postalCode,
-               location,
-               process,
-               aggregated_year       as aggregatedYear,
-               status,
-               close_date            as closeDate,
-               close_cause           as closeCause,
-               kind,
-               representative_name   as representativeName,
-               capital_stock         as capitalStock,
-               employee_number       as employeeNumber,
-               company_size_male     as companySizeMale,
-               company_size_female   as companySizeFemale,
-               business_summary      as businessSummary,
-               company_url           as companyUrl,
-               founding_year         as foundingYear,
-               date_of_establishment as dateOfEstablishment,
-               qualification_grade   as qualificationGrade
+    <select id="findCompanyIdsByCorporateNumbers"
+            resultType="com.java.companyhouse.model.solved.MergeKeyIdDto">
+        SELECT corporate_number AS mergeKey, company_id AS id
         FROM company
-        WHERE corporate_number = #{corporateNumber}
+        WHERE corporate_number IN
+        <foreach collection="list" item="cn" open="(" separator="," close=")">
+            #{cn}
+        </foreach>
+    </select>
+
+    <select id="findByCorporateNumbers" resultType="com.java.companyhouse.model.dto.CompanyDto">
+        SELECT
+        corporate_number, name, kana, name_en, postal_code,
+        location, process, aggregated_year, status, close_date,
+        close_cause, kind, representative_name, capital_stock,
+        employee_number, company_size_male, company_size_female,
+        business_summary, company_url, founding_year,
+        date_of_establishment, qualification_grade
+        FROM company
+        WHERE corporate_number IN
+        <foreach collection="list" item="cn" open="(" separator="," close=")">
+            #{cn}
+        </foreach>
     </select>
 </mapper>

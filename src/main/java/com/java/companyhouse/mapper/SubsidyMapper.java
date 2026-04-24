@@ -1,19 +1,25 @@
 package com.java.companyhouse.mapper;
 
 import com.java.companyhouse.model.dto.SubsidyDto;
+import com.java.companyhouse.model.solved.JunctionPair;
+import com.java.companyhouse.model.solved.MergeKeyIdDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface SubsidyMapper {
 
-    void upsertSubsidy(SubsidyDto entity);
+    void bulkUpsertSubsidies(@Param("list") List<SubsidyDto> list);
 
-    void upsertCompanySubsidy(@Param("companyId") Long companyId, @Param("subsidyId") Long subsidyId, @Param("syncId") String syncId);
+    Long findSubsidyIdByMergeKey(@Param("mergeKey") String mergeKey);
 
-    void softDeleteAllCompanySubsidies(@Param("companyId") Long companyId);
+    List<MergeKeyIdDto> findSubsidyIdsByMergeKeys(@Param("list") List<String> list);
 
-    void softDeleteMissingCompanySubsidies(@Param("companyId") Long companyId, @Param("syncId") String syncId);
+    void bulkUpsertCompanySubsidies(@Param("pairs") List<JunctionPair> pairs, @Param("syncId") String syncId);
 
-    Long findSubsidyIdByMergeKey(String mergeKey);
+    void softDeleteAllCompanySubsidies(@Param("list") List<Long> companyIds);
+
+    void softDeleteMissingCompanySubsidies(@Param("companyIds") List<Long> companyIds, @Param("syncId") String syncId);
 }

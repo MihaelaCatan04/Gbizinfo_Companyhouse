@@ -1,19 +1,25 @@
 package com.java.companyhouse.mapper;
 
 import com.java.companyhouse.model.dto.ProcurementDto;
+import com.java.companyhouse.model.solved.JunctionPair;
+import com.java.companyhouse.model.solved.MergeKeyIdDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface ProcurementMapper {
 
-    void upsertProcurement(ProcurementDto entity);
+    void bulkUpsertProcurements(@Param("list") List<ProcurementDto> list);
 
-    void upsertCompanyProcurement(@Param("companyId") Long companyId, @Param("procurementId") Long procurementId, @Param("syncId") String syncId);
+    Long findProcurementIdByMergeKey(@Param("mergeKey") String mergeKey);
 
-    void softDeleteAllCompanyProcurements(@Param("companyId") Long companyId);
+    List<MergeKeyIdDto> findProcurementIdsByMergeKeys(@Param("list") List<String> list);
 
-    void softDeleteMissingCompanyProcurements(@Param("companyId") Long companyId, @Param("syncId") String syncId);
+    void bulkUpsertCompanyProcurements(@Param("pairs") List<JunctionPair> pairs, @Param("syncId") String syncId);
 
-    Long findProcurementIdByMergeKey(String mergeKey);
+    void softDeleteAllCompanyProcurements(@Param("list") List<Long> companyIds);
+
+    void softDeleteMissingCompanyProcurements(@Param("companyIds") List<Long> companyIds, @Param("syncId") String syncId);
 }

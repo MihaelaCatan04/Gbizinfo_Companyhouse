@@ -1,21 +1,29 @@
 package com.java.companyhouse.mapper;
 
 import com.java.companyhouse.model.dto.MajorShareholderDto;
+import com.java.companyhouse.model.solved.JunctionPair;
+import com.java.companyhouse.model.solved.JunctionTriple;
+import com.java.companyhouse.model.solved.MergeKeyIdDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface MajorShareholderMapper {
 
-    void upsertMajorShareholder(MajorShareholderDto dto);
+    void bulkUpsertMajorShareholders(@Param("list") List<MajorShareholderDto> list);
 
-    void upsertFinanceShareholder(@Param("companyId") Long companyId, @Param("financeId") Long financeId, @Param("majorShareholderId") Long majorShareholderId, @Param("syncId") String syncId);
+    Long findMajorShareholderIdByMergeKey(@Param("mergeKey") String mergeKey);
 
-    void softDeleteAllFinanceShareholders(@Param("companyId") Long companyId, @Param("financeId") Long financeId);
+    List<MergeKeyIdDto> findMajorShareholderIdsByMergeKeys(@Param("list") List<String> list);
 
-    void softDeleteMissingFinanceShareholders(@Param("companyId") Long companyId, @Param("financeId") Long financeId, @Param("syncId") String syncId);
+    void bulkUpsertFinanceShareholders(@Param("triples") List<JunctionTriple> triples, @Param("syncId") String syncId);
 
-    void softDeleteOrphanedFinanceShareholders(@Param("companyId") Long companyId);
+    void softDeleteMissingFinanceShareholders(@Param("pairs") List<JunctionPair> pairs, @Param("syncId") String syncId);
 
-    Long findMajorShareholderIdByMergeKey(String mergeKey);
+    void softDeleteOrphanedFinanceShareholders(@Param("companyIds") List<Long> companyIds);
+
+    void softDeleteAllFinanceShareholders(@Param("list") List<JunctionPair> pairs);
+
 }

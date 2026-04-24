@@ -1,21 +1,29 @@
 package com.java.companyhouse.mapper;
 
 import com.java.companyhouse.model.dto.ManagementIndexDto;
+import com.java.companyhouse.model.solved.JunctionPair;
+import com.java.companyhouse.model.solved.JunctionTriple;
+import com.java.companyhouse.model.solved.MergeKeyIdDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface ManagementIndexMapper {
 
-    void upsertManagementIndex(ManagementIndexDto dto);
+    void bulkUpsertManagementIndexes(@Param("list") List<ManagementIndexDto> list);
 
-    void upsertFinanceManagement(@Param("companyId") Long companyId, @Param("financeId") Long financeId, @Param("managementIndexId") Long managementIndexId, @Param("syncId") String syncId);
+    Long findManagementIndexIdByMergeKey(@Param("mergeKey") String mergeKey);
 
-    void softDeleteAllFinanceManagementIndexes(@Param("companyId") Long companyId, @Param("financeId") Long financeId);
+    List<MergeKeyIdDto> findManagementIndexIdsByMergeKeys(@Param("list") List<String> list);
 
-    void softDeleteMissingFinanceManagementIndexes(@Param("companyId") Long companyId, @Param("financeId") Long financeId, @Param("syncId") String syncId);
+    void bulkUpsertFinanceManagementIndexes(@Param("triples") List<JunctionTriple> triples, @Param("syncId") String syncId);
 
-    void softDeleteOrphanedFinanceManagementIndexes(@Param("companyId") Long companyId);
+    void softDeleteMissingFinanceManagementIndexes(@Param("pairs") List<JunctionPair> pairs, @Param("syncId") String syncId);
 
-    Long findManagementIndexIdByMergeKey(String mergeKey);
+    void softDeleteOrphanedFinanceManagementIndexes(@Param("companyIds") List<Long> companyIds);
+
+    void softDeleteAllFinanceManagementIndexes(@Param("list") List<JunctionPair> pairs);
+
 }
